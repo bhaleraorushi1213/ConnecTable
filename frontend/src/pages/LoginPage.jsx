@@ -41,9 +41,8 @@ const LoginPage = () => {
 		const success = validateForm();
 
 		if (success === true) {
-			console.log("formData", formData);
 			const result = await login(formData);
-			if (result.success) {
+			if (result?.success) {
 				navigate("/chat");
 			}
 		}
@@ -72,7 +71,7 @@ const LoginPage = () => {
 
 				<form className="space-y-4" onSubmit={handleSubmit}>
 					<div className="group">
-						<label className="block text-xs font-medium text-[#a79db8] mb-1.5 ml-1">
+						<label htmlFor="email" className="block text-xs font-medium text-[#a79db8] mb-1.5 ml-1">
 							Email Address
 						</label>
 						<div className="relative flex items-center w-full rounded-xl bg-[#19191D] border border-white/5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
@@ -80,6 +79,7 @@ const LoginPage = () => {
 								<Mail className="size-5" />
 							</div>
 							<input
+								id="email"
 								className="w-full bg-transparent border-none text-white placeholder:text-[#5c546b] focus:ring-0 focus:outline-none h-12 px-3 text-sm font-medium"
 								placeholder="name@example.com"
 								type="email"
@@ -93,7 +93,7 @@ const LoginPage = () => {
 
 					<div className="group">
 						<div className="flex justify-between items-center mb-1.5 ml-1">
-							<label className="text-xs font-medium text-[#a79db8]">
+							<label htmlFor="password" className="text-xs font-medium text-[#a79db8]">
 								Password
 							</label>
 						</div>
@@ -102,6 +102,7 @@ const LoginPage = () => {
 								<Lock className="size-5" />
 							</div>
 							<input
+								id="password"
 								className="w-full bg-transparent border-none text-white placeholder:text-[#5c546b] focus:ring-0 focus:outline-none h-12 px-3 text-sm font-medium"
 								placeholder="••••••••"
 								type={showPassword ? "text" : "password"}
