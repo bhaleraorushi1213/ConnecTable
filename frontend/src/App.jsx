@@ -6,10 +6,10 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
-import SignUpPage from "./pages/SignUpPage";
-import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import SignUpPage from "./pages/signup/SignUpPage";
+import LoginPage from "./pages/login/LoginPage";
 import Navbar from "./components/Navbar";
 import { useThemeStore } from "./store/useThemeStore";
 

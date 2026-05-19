@@ -7,17 +7,21 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    receiverId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     text: {
       type: String,
+      trim: true
     },
-    image: {
+    image:{
       type: String,
-    }
+    },
+    chat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Chat"
+    },
+    readBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }],
   },
   { timestamps: true }
 );

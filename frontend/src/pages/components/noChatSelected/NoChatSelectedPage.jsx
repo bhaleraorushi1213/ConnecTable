@@ -1,8 +1,6 @@
 import { CircleFadingPlusIcon, MessagesSquareIcon } from "lucide-react"
-// import { useChatStore } from "../../store/useChatStore.js"s
 
 const NoChatSelectedPage = () => {
-	// const {mobileView, selectedUser} = useChatStore
 	return (
 		<main
 			className={`flex-col relative overflow-hidden h-full flex-1

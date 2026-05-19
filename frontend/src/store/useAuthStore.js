@@ -11,8 +11,14 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
+  isSearchLoading: false,
   socket: null,
+  users:[],
   onlineUsers: [],
+
+  setIsSearchLoading: (value) => set({ isSearchLoading: value }),
+  
+  setUsers: (value) => set({ users: value }),
 
   checkAuth: async () => {
     try {
@@ -73,6 +79,19 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  searchUser: async (search) => {
+    set({isSearchLoading: true})
+    try {
+      const res = await axiosInstance.get(`auth/user?search=${search}`);
+      set({ users: res.data });
+    } catch (error) {
+      console.log("Error in searchUser", error);
+      toast.error("Failed to search users. Please try again.");
+    } finally {
+      set({isSearchLoading: false})
+    }
+  },
+
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
 
@@ -104,7 +123,7 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
-    }); 
+    });
   },
 
   disconnectSocket: () => {
