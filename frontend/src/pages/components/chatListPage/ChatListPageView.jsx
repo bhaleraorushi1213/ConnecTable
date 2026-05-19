@@ -52,7 +52,7 @@ const ChatListPageView = (props) => {
             <div className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-sidebar-dark"></div>
           </div>
           <div className="flex flex-col">
-            <h2 className="text-sm font-semibold leading-tight text-slate-100">
+            <h2 className="text-sm font-semibold leading-tight text-slate-100 dark:text-slate-900">
               {authUser?.fullName || "User"}
             </h2>
             <p className="text-slate-400 text-xs font-normal">Available</p>
@@ -155,7 +155,7 @@ const ChatListPageView = (props) => {
               <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
                 {getChatName(user, authUser) || "User"}
               </p>
-              {unreadCounts[user._id.toString()] > 0 && (
+              {user._id && unreadCounts[user._id.toString()] > 0 && (
                 <span className="ml-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-bold rounded-full">
                   {unreadCounts[user._id.toString()] > 99 ? "99+" : unreadCounts[user._id.toString()]}
                 </span>
@@ -182,14 +182,15 @@ const ChatListPageView = (props) => {
       {renderTabs()}
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-2 max-h-max">
         {isUsersLoading ? <ChatListPageSkeleton /> : renderConversations()}
       </div>
 
       <button
+        onClick={() => setIsNewChatModalOpen(true)}
         className="absolute bottom-6 right-6 size-14 flex items-center justify-center bg-primary hover:bg-primary-hover text-slate-100 rounded-full transition-all active:scale-90 shadow-2xl shadow-primary/40 z-20 group"
       >
-        <PlusIcon onClick={() => setIsNewChatModalOpen(true)} className="size-8 font-extrabold" />
+        <PlusIcon className="size-8 font-extrabold" />
       </button>
       <NewChatModal props={props} />
     </>

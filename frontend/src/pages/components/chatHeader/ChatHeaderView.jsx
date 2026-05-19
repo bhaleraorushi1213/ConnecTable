@@ -28,7 +28,7 @@ const ChatHeaderView = () => {
           <div className="relative">
             <img
               src={selectedChat?.profilePicture || Avatar}
-              alt={selectedChat.fullName}
+              alt={selectedChat?.fullName}
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
             />
           </div>

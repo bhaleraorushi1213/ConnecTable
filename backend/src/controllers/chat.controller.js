@@ -118,6 +118,13 @@ export const updateGroupChat = async (req, res) => {
       return res.status(400).json({ message: "chatId is required" });
     }
 
+    const isAdmin =
+      chat.groupAdmin.toString() === req.user._id.toString();
+
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Only admins can update group" });
+    }
+
     const updates = {};
     if (chatName) updates.chatName = chatName;
     if (profilePicture) updates.profilePicture = profilePicture;
@@ -206,7 +213,7 @@ export const addMemeberToGroup = async (req, res) => {
       chat.groupAdmin.toString() === req.user._id.toString();
 
     if (!isAdmin) {
-      return res.status(403).json({message:"Only admins can add users to the group"});
+      return res.status(403).json({ message: "Only admins can add users to the group" });
     }
 
     const alreadyInGroup = chat.users.some(

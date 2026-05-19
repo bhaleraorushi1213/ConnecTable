@@ -9,7 +9,7 @@ const HomePage = () => {
 	const { mobileView, selectedChat, isNewChatModalOpen } = useChatStore();
 
 	return (
-		<div className={`flex h-screen w-full relative overflow-hidden bg-base-500 ${mobileView === 'chat' && 'pt-0 lg:pt-16'}`}>
+		<div className={`flex h-screen w-full relative overflow-hidden bg-base-500  ${mobileView === 'chat' ? 'pt-0 lg:pt-16' : "pt-16"}`}>
 			<aside
 				className={`flex-shrink-0 h-full relative z-10 border-r border-slate-200 transition-all duration-300 w-full md:w-[300px] 
         ${mobileView === "list" ? "block" : "hidden md:block"}`}

@@ -5,7 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 
 //@description     Get or Search all users
 //@route           GET /api/user?search=
-//@access          Public
+//@access          Protected
 export const allUsers = async (req, res) => {
   try {
     const { search } = req.query;
@@ -13,7 +13,7 @@ export const allUsers = async (req, res) => {
     const trimmed = search?.trim();
     if (!trimmed) return res.status(200).json([]);
 
-    const keyword = search
+    const keyword = trimmed
       ? {
         $or: [
           { fullName: { $regex: trimmed, $options: "i" } },
@@ -22,7 +22,6 @@ export const allUsers = async (req, res) => {
         ],
       }
       : {};
-
     const users = await User.find({
       ...keyword,
       _id: { $ne: req.user._id },
@@ -67,7 +66,7 @@ export const signup = async (req, res) => {
 
     if (newUser) {
       generateToken(newUser._id, res);
-      newUser.save();
+      await newUser.save();
 
       return res.status(201).json({
         _id: newUser._id,
@@ -78,9 +77,8 @@ export const signup = async (req, res) => {
         profilePicture: newUser.profilePicture
       });
     } else {
-      return res.status(400).json({ message: "Invalid user data" });
+      return res.status(400).json({message: "Invalid user data"});
     }
-
   } catch (error) {
     console.log("Error in signup controller", error.message);
     res.status(500).json({ message: "Internal server error" });

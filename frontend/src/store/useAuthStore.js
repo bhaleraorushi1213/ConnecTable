@@ -82,8 +82,7 @@ export const useAuthStore = create((set, get) => ({
   searchUser: async (search) => {
     set({isSearchLoading: true})
     try {
-      const res = await axiosInstance.get(`auth/user?search=${search}`);
-      set({ users: res.data });
+      const res = await axiosInstance.get(`/auth/user?search=${search}`);      set({ users: res.data });
     } catch (error) {
       console.log("Error in searchUser", error);
       toast.error("Failed to search users. Please try again.");

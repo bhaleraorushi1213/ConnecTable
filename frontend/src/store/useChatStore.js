@@ -26,7 +26,7 @@ export const useChatStore = create((set, get) => ({
   setIsNewChatModalOpen: (value) => set({ isNewChatModalOpen: value }),
 
   setSelectedChat: async (chat) => {
-    if(!chat) return;
+    if (!chat) return;
 
     set({ selectedChat: chat });
     get().clearUnreadCount(chat?._id);
@@ -98,6 +98,12 @@ export const useChatStore = create((set, get) => ({
 
   sendMessage: async (messageData) => {
     const { selectedChat, messages, users } = get();
+
+    if (!selectedChat) {
+      toast.error("No chat selected");
+      return;
+    }
+
     set({ isMessageSending: true });
 
     try {
@@ -141,6 +147,11 @@ export const useChatStore = create((set, get) => ({
   subscribeToTyping: () => {
     const socket = useAuthStore.getState().socket;
 
+    if (!socket || !socket.connected) {
+      console.log("Socket not connected");
+      return;
+    }
+
     socket.on(SOCKET_EVENTS.TYPING, (senderId) => {
       const authUser = useAuthStore.getState().authUser;
 
@@ -160,6 +171,7 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromTyping: () => {
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
     socket.off(SOCKET_EVENTS.TYPING);
     socket.off(SOCKET_EVENTS.STOP_TYPING);
   },

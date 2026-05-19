@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
 
 import toast from "react-hot-toast";
@@ -15,16 +14,13 @@ const LoginPage = () => {
 
 	const { login, isLoggingIn } = useAuthStore();
 
-	const navigate = useNavigate();
-
 	const validateForm = () => {
 		if (!formData.email.trim()) return toast.error("Email is required");
 		if (!/\S+@\S+\.\S+/.test(formData.email))
 			return toast.error("Invalid email format");
 		if (!formData.password) return toast.error("Password is required");
 		if (formData.password.length < 6)
-			return toast.error("Password must contain atleast 6 characters");
-
+			return toast.error("Password must contain at least 6 characters");
 		return true;
 	};
 
@@ -34,11 +30,7 @@ const LoginPage = () => {
 		const success = validateForm();
 
 		if (success === true) {
-			const result = await login(formData);
-			if (result?.success) {
-				navigate("/chat");
-			}
-		}
+			await login(formData);		}
 	};
 
 	return (

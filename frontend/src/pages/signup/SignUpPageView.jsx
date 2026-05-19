@@ -104,7 +104,7 @@ const SignUpPageView = (props) => {
                   className="w-full bg-transparent border-none text-white placeholder:text-[#5c546b] focus:ring-0 focus:outline-none h-12 px-3 text-sm font-medium"
                   placeholder="name@example.com"
                   type="email"
-                  error="disabled"
+                  value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
@@ -211,8 +211,7 @@ const SignUpPageView = (props) => {
 
         <div className="mt-6 text-center">
           <p className="text-[#a79db8] text-sm mt-6">
-            Already have a account ?
-            <Link
+            Already have an account?            <Link
               to="/login"
               className="text-primary font-semibold hover:text-[#9d6df0] transition-colors ml-1"
             >

@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import Chat from "../models/chat.model.js"
 
 const app = express();
 const server = http.createServer(app);
@@ -28,9 +29,13 @@ io.on("connection", (socket) => {
   // to send events to all connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  socket.on("joinChat", (room) => {
-    socket.join(room);
-    console.log("User Joined Room: " + room);
+  socket.on("joinChat", async (room) => {
+    const chat = await Chat.findById(room);
+
+    if (chat && chat.users.some(u => u.toString() === userId)) {
+      socket.join(room);
+      console.log("User Joined Room: " + room);
+    }
   });
 
   socket.on("typing", (room, senderId) => socket.in(room).emit("typing", senderId));

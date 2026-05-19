@@ -28,6 +28,11 @@ const ChatListPage = (props) => {
 		setSelectedChat(user);
 
 		const socket = useAuthStore.getState().socket;
+
+		if (!socket) {
+			console.error("Socket not initialized");
+			return;
+		}
 		socket.emit("joinChat", chatId);
 	}
 

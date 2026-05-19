@@ -9,7 +9,7 @@ const NewGroupScreen = (props) => {
   const [checkList, setCheckList] = useState([]);
   const [groupSubject, setGroupSubject] = useState("");
 
-  const { createNewChat } = useChatStore();
+  const { createNewChat, setMobileView } = useChatStore();
   const { searchUser, setUsers } = useAuthStore();
 
   useEffect(() => {
@@ -41,11 +41,19 @@ const NewGroupScreen = (props) => {
       return;
     }
 
-    await createNewChat({
-      chatName: groupSubject,
-      users: checkList,
-      isGroupChat: true,
-    });
+    try {
+      await createNewChat({
+        chatName: groupSubject,
+        users: checkList,
+        isGroupChat: true,
+      });
+      setMobileView("chat");
+    } catch (error) {
+      console.error("Failed to create group:", error);
+      toast.error("Failed to create group");
+    }
+
+
   };
 
   return (

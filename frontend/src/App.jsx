@@ -15,11 +15,20 @@ import { useThemeStore } from "./store/useThemeStore";
 
 const App = () => {
 	const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-	const {theme} = useThemeStore();
+	const { theme } = useThemeStore();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	useEffect(() => {
+		const root = document.documentElement;
+		if (theme === "dark") {
+			root.classList.add("dark");
+		} else {
+			root.classList.remove("dark");
+		}
+	}, [theme]);
 
 	if (isCheckingAuth && !authUser) {
 		return (
@@ -30,7 +39,7 @@ const App = () => {
 	}
 
 	return (
-		<div data-theme={theme}>
+		<div data-theme={theme} className="h-screen">
 			<Navbar />
 
 			<Routes>

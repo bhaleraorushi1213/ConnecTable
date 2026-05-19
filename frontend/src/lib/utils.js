@@ -10,15 +10,17 @@ export const getChatName = (chat, authUser) => {
   if (chat.isGroupChat) {
     return chat.chatName;
   }
-  return chat.users.find((user) => user._id !== authUser._id).fullName
+  const otherUser = chat.users.find((user) => user._id !== authUser._id);
+
+  return otherUser?.fullName || "User";
 }
 
-export const isUserOnline = (user, onlineUsers, authUser) => {
-  if(user.isGroupChat) {
+export const isUserOnline = (chat, onlineUsers, authUser) => {
+  if (chat.isGroupChat) {
     return;
   }
 
-  const filteredUser = user.users.find((user) => user._id !== authUser._id);
+  const filteredUser = chat.users.find((user) => user._id !== authUser._id);
 
-  return onlineUsers.includes(filteredUser._id);
+  return filteredUser ? onlineUsers.includes(filteredUser._id) : false;
 }

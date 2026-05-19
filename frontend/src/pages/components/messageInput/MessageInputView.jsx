@@ -20,7 +20,7 @@ const MessageInputView = (props) => {
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border corder-zinc-700"
+              className="w-20 h-20 object-cover rounded-lg border border-zinc-700"
             />
             <button
               onClick={removeImage}
@@ -32,7 +32,6 @@ const MessageInputView = (props) => {
           </div>
         </div>
       )}
-
       <form onSubmit={handleSendMessage} className="flex items-center gap-2">
         <div className="flex-1 flex gap-2">
           <input
@@ -62,7 +61,7 @@ const MessageInputView = (props) => {
         <button
           type="submit"
           className="p-3 rounded-full bg-cyan-600 hover:bg-cyan-800"
-          disabled={!text.trim() && !imagePreview && isMessageSending}
+          disabled={(!text.trim() && !imagePreview) || isMessageSending}
         >
           <Send className="size-5 lg:size-6 text-white" />
         </button>

@@ -1,6 +1,9 @@
 import { CircleFadingPlusIcon, MessagesSquareIcon } from "lucide-react"
+import { useChatStore } from "../../../store/useChatStore";
 
 const NoChatSelectedPage = () => {
+	const { setIsNewChatModalOpen } = useChatStore();
+
 	return (
 		<main
 			className={`flex-col relative overflow-hidden h-full flex-1
@@ -21,6 +24,7 @@ const NoChatSelectedPage = () => {
 					messaging.
 				</p>
 				<button
+				onClick={() => setIsNewChatModalOpen(true)}
 					className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold text-base shadow-xl shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-3 hover:-translate-y-1"
 				>
 					<CircleFadingPlusIcon className="size-6" />

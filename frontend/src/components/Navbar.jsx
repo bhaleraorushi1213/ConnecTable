@@ -22,9 +22,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-          <Link>
-            <ThemeToggle />
-          </Link>
+            {/* <ThemeToggle /> */}
 
             {authUser && (
               <>

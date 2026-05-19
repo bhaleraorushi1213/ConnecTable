@@ -27,13 +27,11 @@ const NewChatList = (props) => {
 
   const handleContactClick = async (contact) => {
     try {
-      setMobileView("chat");
-      
       await createNewChat({userId:contact._id});
 
       // Switch to chat view on mobile
+      setMobileView("chat");
       
-
       // Close modal
       setIsNewChatModalOpen(false);
     } catch (error) {

@@ -19,6 +19,8 @@ const ChatContainer = () => {
   const messageEndRef = useRef(null);
 
   useEffect(() => {
+    if (!selectedChat) return;
+    
     getMessages(selectedChat._id);
 
     subscribeToMessages(selectedChat);
@@ -31,7 +33,7 @@ const ChatContainer = () => {
   }, [selectedChat, getMessages, subscribeToMessages, unsubscribeFromMessages, subscribeToTyping, unsubscribeFromTyping]);
 
   useEffect(() => {
-    if (messageEndRef.current && (messages || isTyping)) {
+    if (messageEndRef.current && (messages.length > 0 || isTyping)) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isTyping])

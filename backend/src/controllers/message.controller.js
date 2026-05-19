@@ -116,7 +116,7 @@ export const sendMessage = async (req, res) => {
 		chatMembers.forEach((memberId) => {
 			const memberSocketId = getReceiverSocketId(memberId.toString());
 			console.log("Emitting to", memberId.toString(), "socketId", memberSocketId); // 👈 add this log
-  
+
 			if (memberSocketId) {
 				io.to(memberSocketId).emit("newMessage", fullMessage);
 			}
@@ -137,6 +137,17 @@ export const markAsRead = async (req, res) => {
 	const userId = req.user._id;
 
 	try {
+		const chat = await Chat.findById(chatId);
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
+
+		const isMember = chat.users.some(
+			(u) => u.toString() === userId.toString()
+		);
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
 		// update all unread messages in this chat
 		await Message.updateMany(
 			{
@@ -161,34 +172,38 @@ export const markAsRead = async (req, res) => {
 // @route   PUT /api/messages/unreadCount
 // @access  Protected
 export const getUnreadCount = async (req, res) => {
-  const userId = req.user._id;
+	const userId = req.user._id;
 
-  try {
-    const unreadCounts = await Message.aggregate([
-      {
-        $match: {
-          readBy: { $ne: new mongoose.Types.ObjectId(userId) },
-          senderId: { $ne: new mongoose.Types.ObjectId(userId) },
-        },
-      },
-      {
-        $group: {
-          _id: "$chat",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+	try {
+		// First get user's chats
+		const userChats = await Chat.find({ users: userId }).select('_id');
+		const chatIds = userChats.map(c => c._id);
 
-    // convert to { chatId: count } map
-    const result = unreadCounts.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
+		const unreadCounts = await Message.aggregate([
+			{
+				$match: {
+					chat: { $in: chatIds },
+					readBy: { $ne: new mongoose.Types.ObjectId(userId) },
+					senderId: { $ne: new mongoose.Types.ObjectId(userId) },
+				},
+			},
+			{
+				$group: {
+					_id: "$chat",
+					count: { $sum: 1 },
+				},
+			},
+		]);
+		// convert to { chatId: count } map
+		const result = unreadCounts.reduce((acc, item) => {
+			acc[item._id] = item.count;
+			return acc;
+		}, {});
 
-    res.status(200).json(result);
-  } catch (error) {
-    console.log("Error in getUnreadCount controller", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
+		res.status(200).json(result);
+	} catch (error) {
+		console.log("Error in getUnreadCount controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
 };
 
