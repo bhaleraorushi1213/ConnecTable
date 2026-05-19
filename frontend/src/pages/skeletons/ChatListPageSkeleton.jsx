@@ -1,5 +1,3 @@
-// import { Users } from "lucide-react";
-
 const ChatListPageSkeleton = () => {
   const skeletonContacts = Array(8).fill(null);
 
@@ -11,7 +9,7 @@ const ChatListPageSkeleton = () => {
           <div key={idx} className="w-full p-3 flex items-center gap-3">
             {/* Avatar skeleton */}
             <div className="relative mx-auto lg:mx-0">
-              <div className="skeleton size-20 md:size-12 rounded-full" />
+              <div className="skeleton size-14 lg:size-20 md:size-12 rounded-full" />
             </div>
             {/* user info skeleton */}
             <div className=" text-center sm:text-left min-w-full flex-1">

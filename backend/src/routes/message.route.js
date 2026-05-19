@@ -1,12 +1,16 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import { getMessages, getUsers, sendMessage } from "../controllers/message.controller.js";
+import { getAllMessages, sendMessage, markAsRead, getUnreadCount } from "../controllers/message.controller.js";
 
 const router = express.Router();
 
-router.get("/users", protectRoute, getUsers);
-router.get("/:id", protectRoute, getMessages);
+router.get("/unreadCount", protectRoute, getUnreadCount);
 
-router.post("/send/:id", protectRoute, sendMessage);
+router.get("/:chatId", protectRoute, getAllMessages);
+
+router.post("/send/:chatId", protectRoute, sendMessage);
+
+router.put("/markAsRead/:chatId", protectRoute, markAsRead);
+
 
 export default router;

@@ -1,11 +1,14 @@
 import { ChevronLeft, SearchIcon, X } from "lucide-react";
-import { useChatStore } from "../../store/useChatStore";
-import { useAuthStore } from "../../store/useAuthStore";
-import Avatar from "../../assets/default-avatar.png";
 
-const ChatHeader = () => {
-  const { setMobileView, selectedUser, setSelectedUser } = useChatStore();
-  const { onlineUsers } = useAuthStore();
+import { useChatStore } from "../../../store/useChatStore.js";
+import { useAuthStore } from "../../../store/useAuthStore.js";
+import { getChatName, isUserOnline } from "../../../lib/utils.js";
+
+import Avatar from "../../../assets/default-avatar.png";
+
+const ChatHeaderView = () => {
+  const { setMobileView, selectedChat, setSelectedChat } = useChatStore();
+  const { onlineUsers, authUser } = useAuthStore();
 
   return (
     <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-base-300/90 border-b shadow-sm shrink-0">
@@ -13,7 +16,7 @@ const ChatHeader = () => {
         <button
           onClick={() => {
             setMobileView("list")
-            setSelectedUser(null)
+            setSelectedChat(null)
           }}
           className="md:hidden -ml-2 p-2 hover:bg-base-100/10 rounded-full"
         >
@@ -24,17 +27,17 @@ const ChatHeader = () => {
         >
           <div className="relative">
             <img
-              src={selectedUser?.profilePicture || Avatar}
-              alt={selectedUser.fullName}
+              src={selectedChat?.profilePicture || Avatar}
+              alt={selectedChat?.fullName}
               className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
             />
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              {selectedUser?.fullName || "User"}
+              {getChatName(selectedChat, authUser) || "User"}
             </h2>
-            <p className={`text-sm ${onlineUsers.includes(selectedUser?._id) ? "text-slate-100" : "text-base-content/70"}`}>
-              {onlineUsers.includes(selectedUser?._id) ? "Online" : "Offline"}
+            <p className={`text-sm ${isUserOnline(selectedChat, onlineUsers, authUser) ? "text-slate-100" : "text-base-content/70"}`}>
+            {!selectedChat.isGroupChat && (isUserOnline(selectedChat, onlineUsers, authUser) ? "Online" : "Offline")  }
             </p>
           </div>
         </div>
@@ -45,7 +48,7 @@ const ChatHeader = () => {
         >
           <SearchIcon className="size-5" />
         </button>
-        <button onClick={() => setSelectedUser(null)} className={` md:flex p-2 rounded-full transition-colors text-slate-100 hover:text-slate-400`}>
+        <button onClick={() => setSelectedChat(null)} className={` md:flex p-2 rounded-full transition-colors text-slate-100 hover:text-slate-400`}>
           <X className="size-5" />
         </button>
       </div>
@@ -53,4 +56,4 @@ const ChatHeader = () => {
   )
 }
 
-export default ChatHeader;
+export default ChatHeaderView

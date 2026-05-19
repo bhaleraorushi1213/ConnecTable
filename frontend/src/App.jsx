@@ -6,20 +6,29 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
-import SignUpPage from "./pages/SignUpPage";
-import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import SignUpPage from "./pages/signup/SignUpPage";
+import LoginPage from "./pages/login/LoginPage";
 import Navbar from "./components/Navbar";
 import { useThemeStore } from "./store/useThemeStore";
 
 const App = () => {
 	const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-	const {theme} = useThemeStore();
+	const { theme } = useThemeStore();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
+
+	useEffect(() => {
+		const root = document.documentElement;
+		if (theme === "dark") {
+			root.classList.add("dark");
+		} else {
+			root.classList.remove("dark");
+		}
+	}, [theme]);
 
 	if (isCheckingAuth && !authUser) {
 		return (
@@ -30,7 +39,7 @@ const App = () => {
 	}
 
 	return (
-		<div data-theme={theme}>
+		<div data-theme={theme} className="h-screen">
 			<Navbar />
 
 			<Routes>

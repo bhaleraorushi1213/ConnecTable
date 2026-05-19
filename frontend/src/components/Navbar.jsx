@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { LogOut, MessageSquare, User } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
+import { useChatStore } from "../store/useChatStore";
 
 const Navbar = () => {
   const { authUser, logout } = useAuthStore();
-
+  const { mobileView } = useChatStore();
 
   return (
-    <header className="bg-base-200 border-b border-base-300 fixed w-full top-0 z-40 backdrop-blur-lg bg-base-100/80 mb-26">
+    <header className={`bg-base-200 border-b border-base-300 fixed w-full top-0 z-40 backdrop-blur-lg bg-base-100/80 mb-26 ${mobileView == 'chat' && 'hidden lg:block'}`}>
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-8">
@@ -20,10 +22,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link to={"/settings"} className={`btn btn-sm gap-2 transition-colors`}>
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </Link>
+            {/* <ThemeToggle /> */}
 
             {authUser && (
               <>

@@ -8,6 +8,7 @@ import { connectDB } from "./lib/db.js";
 
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
+import chatRoutes from "./routes/chat.route.js";
 
 import { app, server } from "./lib/socket.js";
 
@@ -24,6 +25,7 @@ app.use(cors({
 }))
 
 app.use("/api/auth", authRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
 if (process.env.NODE_ENV === "production") {

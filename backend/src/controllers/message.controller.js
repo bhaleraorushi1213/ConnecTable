@@ -1,46 +1,91 @@
-import cloudinary from "../lib/cloudinary.js";
+import mongoose from "mongoose";
+
 import { getReceiverSocketId, io } from "../lib/socket.js";
+
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import Chat from "../models/chat.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
-export const getUsers = async (req, res) => {
+//@description     Get all Messages
+//@route           GET /api/message/:chatId
+//@access          Protected
+export const getAllMessages = async (req, res) => {
+	const { chatId } = req.params;
+	const userId = req.user._id;
+
 	try {
-		const loggedInUserId = req.user._id;
-		const filteredUsers = await User.find({
-			_id: { $ne: loggedInUserId },
-		}).select("-password");
+		if (!chatId) {
+			return res.status(400).json({ message: "chatId is required" });
+		}
 
-		res.status(200).json(filteredUsers);
-	} catch (error) {
-		console.log("Error in getUsers controller", error.message);
-		res.status(500).json({ message: "Internal server error" });
-	}
-};
+		const chat = await Chat.findById(chatId);
 
-export const getMessages = async (req, res) => {
-	try {
-		const { id: userToChatId } = req.params;
-		const senderId = req.user._id;
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
 
-		const messages = await Message.find({
-			$or: [
-				{ senderId: senderId, receiverId: userToChatId },
-				{ senderId: userToChatId, receiverId: senderId },
-			],
-		});
+		const isMember = chat.users.some(
+			(u) => u.toString() === req.user._id.toString()
+		);
 
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
+
+		const messages = await Message.find({ chat: chatId })
+			.populate("senderId", "fullName profilePicture email")
+			.populate({
+				path: "chat",
+				populate: {
+					path: "users",
+					select: "fullName profilePicture email",
+				},
+			});
+
+		await Message.updateMany(
+			{
+				chat: chatId,
+				readBy: { $ne: userId },
+				senderId: { $ne: userId },
+			},
+			{ $addToSet: { readBy: userId } }
+		);
 		res.status(200).json(messages);
 	} catch (error) {
-		console.log("Error in getMessages controller", error.message);
+		console.log("Error in getAllMessages controller", error.message);
 		res.status(500).json({ message: "Internal server error" });
 	}
 };
 
+//@description     Create New Message
+//@route           POST /api/messages/send/:id
+//@access          Protected
 export const sendMessage = async (req, res) => {
 	try {
 		const { text, image } = req.body;
-		const { id: receiverId } = req.params;
+		const { chatId } = req.params;
 		const senderId = req.user._id;
+
+		if (!text && !image) {
+			return res.status(400).json({ message: "Message must have text or an image" });
+		}
+
+		if (!chatId) {
+			return res.status(400).json({ message: "chatId is required" });
+		}
+
+		const chat = await Chat.findById(chatId);
+
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
+
+		const isMember = chat.users.some((u) => u.toString() === senderId.toString());
+
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
 
 		let imageUrl;
 
@@ -49,24 +94,116 @@ export const sendMessage = async (req, res) => {
 			imageUrl = uploadResponse.secure_url;
 		}
 
-		const newMessage = new Message({
+		const newMessage = await Message.create({
 			senderId,
-			receiverId,
 			text,
+			chat: chatId,
 			image: imageUrl,
+			readBy: [senderId],
 		});
 
-		await newMessage.save();
+		const fullMessage = await Message.findById(newMessage._id)
+			.populate("senderId", "fullName profilePicture email")
+			.populate({
+				path: "chat",
+				populate: { path: "users", select: "fullName profilePicture email" }
+			});
 
-		const receiverSocketId = getReceiverSocketId(receiverId); 
+		await Chat.findByIdAndUpdate(chatId, { latestMessage: fullMessage });
 
-		if(receiverSocketId) {
-			io.to(receiverSocketId).emit("newMessage", newMessage);
-		}
+		const chatMembers = chat.users.filter((u) => u.toString() !== senderId.toString());
 
-		res.status(201).json(newMessage);
+		chatMembers.forEach((memberId) => {
+			const memberSocketId = getReceiverSocketId(memberId.toString());
+			console.log("Emitting to", memberId.toString(), "socketId", memberSocketId); // 👈 add this log
+
+			if (memberSocketId) {
+				io.to(memberSocketId).emit("newMessage", fullMessage);
+			}
+		});
+
+		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);
 		res.status(500).json({ message: "Internal server error" });
 	}
 };
+
+// @desc    Mark messages as read
+// @route   PUT /api/messages/markAsRead/:id
+// @access  Protected
+export const markAsRead = async (req, res) => {
+	const { chatId } = req.params;
+	const userId = req.user._id;
+
+	try {
+		const chat = await Chat.findById(chatId);
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
+
+		const isMember = chat.users.some(
+			(u) => u.toString() === userId.toString()
+		);
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
+		// update all unread messages in this chat
+		await Message.updateMany(
+			{
+				chat: chatId,
+				readBy: { $ne: userId }, // not already read by this user
+				senderId: { $ne: userId }, // not sent by this user
+			},
+			{
+				$addToSet: { readBy: userId }, // avoid duplicates
+			}
+		);
+
+		res.status(200).json({ message: "Messages marked as read" });
+	} catch (error) {
+		console.log("Error in markAsRead controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+
+// @desc    Get unread count
+// @route   PUT /api/messages/unreadCount
+// @access  Protected
+export const getUnreadCount = async (req, res) => {
+	const userId = req.user._id;
+
+	try {
+		// First get user's chats
+		const userChats = await Chat.find({ users: userId }).select('_id');
+		const chatIds = userChats.map(c => c._id);
+
+		const unreadCounts = await Message.aggregate([
+			{
+				$match: {
+					chat: { $in: chatIds },
+					readBy: { $ne: new mongoose.Types.ObjectId(userId) },
+					senderId: { $ne: new mongoose.Types.ObjectId(userId) },
+				},
+			},
+			{
+				$group: {
+					_id: "$chat",
+					count: { $sum: 1 },
+				},
+			},
+		]);
+		// convert to { chatId: count } map
+		const result = unreadCounts.reduce((acc, item) => {
+			acc[item._id] = item.count;
+			return acc;
+		}, {});
+
+		res.status(200).json(result);
+	} catch (error) {
+		console.log("Error in getUnreadCount controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
