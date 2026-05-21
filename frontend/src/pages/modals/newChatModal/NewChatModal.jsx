@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useChatStore } from "../../store/useChatStore";
+import { useChatStore } from "../../../store/useChatStore";
 import NewChatModalView from "./NewChatModalView";
 
 const NewChatModal = (props) => {

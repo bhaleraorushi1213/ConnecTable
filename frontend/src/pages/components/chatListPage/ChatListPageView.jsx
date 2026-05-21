@@ -6,7 +6,6 @@ import { getChatName, isUserOnline } from "../../../lib/utils.js";
 import ChatListPageSkeleton from "../../skeletons/ChatListPageSkeleton.jsx";
 import { useAuthStore } from "../../../store/useAuthStore.js";
 import { useChatStore } from "../../../store/useChatStore.js";
-import NewChatModal from "../../modals/NewChatModal.jsx";
 
 const ChatListPageView = (props) => {
   const { handleConversationClick, handleChangeTabs } = props;
@@ -21,6 +20,12 @@ const ChatListPageView = (props) => {
   } = useChatStore();
 
   const filteredUsers = getFilteredUsers();
+
+  const getChatPic = (chat) => {
+    const newChat = chat.isGroupChat ? chat : chat.users.filter((u) => u._id !== authUser._id);
+
+    return newChat.profilePicture;
+  }
 
   const getLatestMessage = (user) => {
     const latest = user?.latestMessage;
@@ -38,33 +43,9 @@ const ChatListPageView = (props) => {
     return "flex-1 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-100 transition-colors";
   };
 
-  const renderUserStatus = () => {
-    return (
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div
-              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
-              style={{
-                backgroundImage: `url("${authUser?.profilePicture || Avatar}")`,
-              }}
-            ></div>
-            <div className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-sidebar-dark"></div>
-          </div>
-          <div className="flex flex-col">
-            <h2 className="text-sm font-semibold leading-tight text-slate-100 dark:text-slate-900">
-              {authUser?.fullName || "User"}
-            </h2>
-            <p className="text-slate-400 text-xs font-normal">Available</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderSearchBar = () => {
     return (
-      <div className="px-4 py-2 my-3">
+      <div className="px-4 my-4">
         <div className="flex w-full items-center rounded-lg bg-slate-100 dark:bg-card-dark px-3 py-2">
           <SearchIcon className="size-5 text-slate-500 mr-2" />
           <input
@@ -132,14 +113,22 @@ const ChatListPageView = (props) => {
           <div className="relative flex-shrink-0">
             {user.isGroupChat ?
               <div className="g-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 flex justify-center items-center border border-zinc-500">
-                <Users className="size-6 text-zinc-200 " />
+
+                {getChatPic(user) ?
+                  <img
+                    src={getChatPic(user) || Avatar}
+                    alt={user?.fullName}
+                    className="object-cover rounded-full h-12 w-12"
+                  /> :
+                  <Users className="size-6 text-zinc-200 " />
+                }
               </div>
               :
               <>
                 <img
-                  src={user?.profilePicture || Avatar}
+                  src={getChatPic(user) || Avatar}
                   alt={user?.fullName}
-                  className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12"
+                  className="object-cover rounded-full h-12 w-12"
                 />
                 {isUserOnline(user, onlineUsers, authUser) && (
                   <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
@@ -172,8 +161,6 @@ const ChatListPageView = (props) => {
 
   return (
     <>
-      {/* User Status */}
-      {renderUserStatus()}
 
       {/* Searchbar */}
       {renderSearchBar()}
@@ -182,7 +169,7 @@ const ChatListPageView = (props) => {
       {renderTabs()}
 
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar py-2 max-h-max">
+      <div className="flex flex-1 flex-col overflow-y-scroll h-[calc(100svh-200px)] custom-scrollbar py-2">
         {isUsersLoading ? <ChatListPageSkeleton /> : renderConversations()}
       </div>
 
@@ -192,7 +179,6 @@ const ChatListPageView = (props) => {
       >
         <PlusIcon className="size-8 font-extrabold" />
       </button>
-      <NewChatModal props={props} />
     </>
   )
 }

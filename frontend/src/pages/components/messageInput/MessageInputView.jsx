@@ -13,7 +13,7 @@ const MessageInputView = (props) => {
   } = props;
 
   return (
-    <div className="p-4 w-full">
+    <footer className="p-4 w-full absolute bottom-0">
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
@@ -62,11 +62,14 @@ const MessageInputView = (props) => {
           type="submit"
           className="p-3 rounded-full bg-cyan-600 hover:bg-cyan-800"
           disabled={(!text.trim() && !imagePreview) || isMessageSending}
-        >
-          <Send className="size-5 lg:size-6 text-white" />
+        > {
+            isMessageSending ? <span className="loading loading-spinner text-white" /> :
+              <Send className="size-5 lg:size-6 text-white" />
+          }
+
         </button>
       </form>
-    </div>
+    </footer>
   )
 }
 

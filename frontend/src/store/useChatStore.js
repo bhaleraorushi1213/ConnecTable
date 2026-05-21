@@ -14,6 +14,7 @@ export const useChatStore = create((set, get) => ({
   isMessageSending: false,
   isNewChatModalOpen: false,
   isTyping: false,
+  isSidebarOpen: false,
   mobileView: "list",
   activeTab: "all",
 
@@ -23,11 +24,11 @@ export const useChatStore = create((set, get) => ({
 
   setIsTyping: (value) => set({ isTyping: value }),
 
+  setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
+
   setIsNewChatModalOpen: (value) => set({ isNewChatModalOpen: value }),
 
   setSelectedChat: async (chat) => {
-    if (!chat) return;
-
     set({ selectedChat: chat });
     get().clearUnreadCount(chat?._id);
 
@@ -44,7 +45,11 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.post(endpoint, data);
 
       get().addChat(res.data);
-      set({ selectedChat: res.data, isNewChatModalOpen: false });
+      set({
+        selectedChat: res.data,
+        isNewChatModalOpen: false,
+        mobileView: "chat",
+      });
     } catch (error) {
       console.log("Error in createNewChat", error);
       toast.error("Failed to create new chat. Please try again.");
@@ -121,6 +126,119 @@ export const useChatStore = create((set, get) => ({
       toast.error("Failed to send messages. Please try again.");
     } finally {
       set({ isMessageSending: false });
+    }
+  },
+
+  deleteMessage: async (messageId) => {
+    try {
+      await axiosInstance.delete(`/messages/${messageId}`);
+      const { messages } = get();
+      set({ messages: messages.filter((m) => m._id !== messageId) });
+    } catch (error) {
+      console.log("Error in deleteMessage", error);
+      toast.error("Failed to delete message");
+    }
+  },
+
+  reactToMessage: async (messageId, emoji) => {
+    try {
+      const res = await axiosInstance.put(
+        `/messages/react/${messageId}`,
+        { emoji }
+      );
+
+      // update message in messages array
+      const { messages } = get();
+      set({
+        messages: messages.map((m) =>
+          m._id === messageId ? res.data : m
+        ),
+      });
+    } catch (error) {
+      console.log("Error in reactToMessage", error);
+      toast.error("Failed to react to message");
+    }
+  },
+
+  updateGroup: async (data) => {
+    try {
+      const res = await axiosInstance.put("/chat/group/update", data);
+
+      const { users } = get();
+
+      set({
+        selectedChat: res.data,
+        users: users.map((u) => u._id === res.data._id ? res.data : u),
+      });
+    } catch (error) {
+      console.log("Error in updateGroup", error);
+      toast.error("Failed to update group");
+    }
+  },
+
+  addMemberToGroup: async (chatId, userId) => {
+    try {
+      const res = await axiosInstance.put("/chat/group/add", {
+        chatId,
+        userId,
+      });
+
+      // update selectedChat and users list
+      const { users } = get();
+      set({
+        selectedChat: res.data,
+        users: users.map((u) => u._id === chatId ? res.data : u),
+      });
+    } catch (error) {
+      console.log("Error in addMemberToGroup", error);
+      toast.error("Failed to add member");
+    }
+  },
+
+  removeFromGroup: async (chatId, userId) => {
+    try {
+      const res = await axiosInstance.put("/chat/group/delete", {
+        chatId,
+        userId,
+      });
+
+      // update the selected chat with new users list
+      set({ selectedChat: res.data });
+
+      // update in users list too
+      const { users } = get();
+      const updatedUsers = users.map((u) =>
+        u._id === chatId ? res.data : u
+      );
+      set({ users: updatedUsers });
+
+      toast.success("Member removed");
+    } catch (error) {
+      console.log("Error in removeFromGroup", error);
+      toast.error("Failed to remove member");
+    }
+  },
+
+  leaveGroup: async (chatId) => {
+    const { authUser } = useAuthStore.getState();
+    try {
+      await axiosInstance.put("/chat/group/delete", {
+        chatId,
+        userId: authUser._id,
+      });
+
+      // remove from users list and clear selected chat
+      const { users } = get();
+      set({
+        users: users.filter((u) => u._id !== chatId),
+        selectedChat: null,
+        mobileView: "list",
+      });
+
+      toast.success("Left group successfully");
+    } catch (error) {
+      console.log("Error leaving group", error);
+      toast.error("Failed to leave group");
     }
   },
 
@@ -216,11 +334,57 @@ export const useChatStore = create((set, get) => ({
         users: updatedUsers,
         isTyping: false,
       });
-    })
+    });
+
+    socket.on("messageDeleted", ({ messageId }) => {
+      const { messages } = get();
+      set({ messages: messages.filter((m) => m._id !== messageId) });
+    });
+
+    socket.on("messageReaction", (updatedMessage) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((m) =>
+          m._id === updatedMessage._id ? updatedMessage : m
+        ),
+      });
+    });
+
+    socket.on("addedToGroup", (newChat) => {
+      const { users } = get();
+      const exists = users.find((u) => u._id === newChat._id);
+      if (!exists) {
+        set({ users: [newChat, ...users] });
+      }
+      toast.success(`You were added to ${newChat.chatName}`);
+    });
+
+    socket.on("removedFromGroup", (chatId) => {
+      const { users, selectedChat } = get();
+      set({ users: users.filter((u) => u._id !== chatId) });
+
+      if (selectedChat?._id === chatId) {
+        set({ selectedChat: null, mobileView: "list" });
+        toast.error("You were removed from the group");
+      }
+    });
+
+    socket.on("groupUpdated", (updatedChat) => {
+      const { users } = get();
+      set({
+        users: users.map((u) => u._id === updatedChat._id ? updatedChat : u),
+        selectedChat: updatedChat,
+      });
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("messageDeleted");
+    socket.off("messageReaction");
+    socket.off("removedFromGroup");
+    socket.off("addedToGroup");
+    socket.off("groupUpdated");
   },
 }));

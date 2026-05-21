@@ -1,6 +1,8 @@
+import { getReceiverSocketId, io } from "../lib/socket.js";
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import Chat from "../models/chat.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
 //@description     Create or fetch One to One Chat
 //@route           POST /api/chat/
@@ -76,11 +78,17 @@ export const getAllChats = async (req, res) => {
 //@route           POST /api/chat/group/create
 //@access          Protected
 export const createGroupChat = async (req, res) => {
-  const { users: rawUsers, chatName } = req.body;
+  const { users: rawUsers, chatName, profilePicture } = req.body;
 
   try {
     if (!chatName || !rawUsers) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let newProfilePicture;
+    if (profilePicture){
+      const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+      newProfilePicture = uploadResponse.secure_url;
     }
 
     const users = typeof rawUsers === "string" ? JSON.parse(rawUsers) : rawUsers;
@@ -93,7 +101,8 @@ export const createGroupChat = async (req, res) => {
       chatName,
       users: [...users, req.user],
       isGroupChat: true,
-      groupAdmin: req.user._id
+      groupAdmin: req.user._id,
+      profilePicture: newProfilePicture
     })
 
     const fullGroupChat = await Chat.findById(groupChat._id)
@@ -118,6 +127,8 @@ export const updateGroupChat = async (req, res) => {
       return res.status(400).json({ message: "chatId is required" });
     }
 
+    const chat = await Chat.findById(chatId);
+
     const isAdmin =
       chat.groupAdmin.toString() === req.user._id.toString();
 
@@ -127,7 +138,10 @@ export const updateGroupChat = async (req, res) => {
 
     const updates = {};
     if (chatName) updates.chatName = chatName;
-    if (profilePicture) updates.profilePicture = profilePicture;
+    if (profilePicture){
+      const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+      updates.profilePicture = uploadResponse.secure_url;
+    }
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: "No fields provided to update" });
@@ -136,18 +150,88 @@ export const updateGroupChat = async (req, res) => {
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
       { $set: updates },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
       .populate("users", "-password")
-      .populate("groupAdmin", "-password");
+      .populate("groupAdmin", "profilePicture" , "-password");
 
     if (!updatedChat) {
       return res.status(404).json({ message: "Chat not found" });
     }
 
+    // notify all members
+    updatedChat.users.forEach((member) => {
+      const memberSocketId = getReceiverSocketId(member._id.toString());
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("groupUpdated", updatedChat);
+      }
+    });
+
     res.status(200).json(updatedChat);
   } catch (error) {
     console.log("Error in updateGroupChat controller", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// @desc    Add user to Group / Leave
+// @route   PUT /api/chat/group/add
+// @access  Protected
+export const addMemeberToGroup = async (req, res) => {
+  const { chatId, userId } = req.body;
+
+  try {
+    if (!chatId || !userId) {
+      return res.status(400).json({ message: "chatId and userId are required" });
+    }
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+
+    const isAdmin =
+      chat.groupAdmin.toString() === req.user._id.toString();
+
+    if (!isAdmin) {
+      return res.status(403).json({ message: "Only admins can add users to the group" });
+    }
+
+    const alreadyInGroup = chat.users.some(
+      (u) => u.toString() === userId.toString()
+    );
+
+    if (alreadyInGroup) {
+      return res.status(400).json({ message: "User is already in the group" });
+    }
+
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      { $addToSet: { users: userId } },
+      { returnDocument: 'after' }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
+
+    // notify the added user
+    const addedUserSocketId = getReceiverSocketId(userId);
+    if (addedUserSocketId) {
+      io.to(addedUserSocketId).emit("addedToGroup", updatedChat);
+    }
+
+    // notify existing members
+    updatedChat.users.forEach((member) => {
+      if (member._id.toString() === userId) return;
+      const memberSocketId = getReceiverSocketId(member._id.toString());
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("groupUpdated", updatedChat);
+      }
+    });
+
+    res.status(200).json(updatedChat);
+
+  } catch (error) {
+    console.log("Error in addMemeberToGroup controller", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -181,61 +265,26 @@ export const removeFromGroup = async (req, res) => {
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
       { $pull: { users: userId } },
-      { new: true }
+      { returnDocument: 'after' }
     ).populate("users", "-password")
       .populate("groupAdmin", "-password");
+
+    const removedUserSocketId = getReceiverSocketId(userId);
+    if (removedUserSocketId) {
+      io.to(removedUserSocketId).emit("removedFromGroup", chatId);
+    }
+
+    updatedChat.users.forEach((member) => {
+      const memberSocketId = getReceiverSocketId(member._id.toString());
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("groupUpdated", updatedChat);
+      }
+    });
 
     res.status(200).json(updatedChat);
 
   } catch (error) {
     console.log("Error in removeFromGroup controller", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// @desc    Add user to Group / Leave
-// @route   PUT /api/chat/group/add
-// @access  Protected
-export const addMemeberToGroup = async (req, res) => {
-  const { chatId, userId } = req.body;
-
-  try {
-    if (!chatId || !userId) {
-      return res.status(400).json({ message: "chatId and userId are required" });
-    }
-    const chat = await Chat.findById(chatId);
-
-    if (!chat) {
-      return res.status(404).json({ message: "Chat not found" });
-    }
-
-    const isAdmin =
-      chat.groupAdmin.toString() === req.user._id.toString();
-
-    if (!isAdmin) {
-      return res.status(403).json({ message: "Only admins can add users to the group" });
-    }
-
-    const alreadyInGroup = chat.users.some(
-      (u) => u.toString() === userId
-    );
-
-    if (alreadyInGroup) {
-      return res.status(400).json({ message: "User is already in the group" });
-    }
-
-    const updatedChat = await Chat.findByIdAndUpdate(
-      chatId,
-      { $addToSet: { users: userId } },
-      { new: true }
-    )
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
-
-    res.status(200).json(updatedChat);
-
-  } catch (error) {
-    console.log("Error in addMemeberToGroup controller", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

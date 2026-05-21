@@ -1,5 +1,6 @@
 import { useAuthStore } from "../../../../store/useAuthStore.js";
 import { Camera, Check, CircleX, Loader, Search, SearchIcon, Smile } from "lucide-react";
+import Avatar from "../../../../assets/default-avatar.png"
 
 const NewGroupScreenView = (props) => {
   const {
@@ -11,11 +12,16 @@ const NewGroupScreenView = (props) => {
     handleCreateGroup,
     searchQuery,
     setSearchQuery,
+    isCreating,
+    selectedUsers,
+    handleImageUpload,
+    selectedImage
   } = props;
   const { onlineUsers, users, isSearchLoading } = useAuthStore();
+
   return (
     <>
-      <header className="relative z-10 flex items-center justify-between px-4 py-3 bg-sidebar-dark/95 backdrop-blur-md top-0 border-b border-white/5">
+      <header className="relative z-10 flex items-center justify-between md:p-6 p-4 bg-sidebar-dark/95 backdrop-blur-md top-0 border-b border-white/5">
         <button
           onClick={onBack}
           className="text-primary text-base font-medium active:opacity-70 transition-opacity"
@@ -30,7 +36,8 @@ const NewGroupScreenView = (props) => {
           disabled={!groupSubject.trim() || checkList.length < 2}
           className="text-primary text-base font-bold active:opacity-70 transition-opacity disabled:opacity-40"
         >
-          Create
+          {isCreating ? <span className="loading loading-spinner loading-xs" /> : "Create"}
+
         </button>
       </header>
 
@@ -41,13 +48,25 @@ const NewGroupScreenView = (props) => {
       )}
 
       <div className="relative z-10 flex-1 overflow-y-auto pb-8 bg-sidebar-dark">
+        {/* Group subject */}
         <div className="px-5 py-6">
           <div className="flex items-center gap-4">
-            <button className="relative shrink-0 group">
-              <div className="size-[68px] rounded-full bg-[#2a2736] flex items-center justify-center text-gray-500 border border-white/5 hover:bg-card-dark transition-colors">
-                <Camera className="size-10 text-center" />
-              </div>
-            </button>
+            <label htmlFor="group-image" className="relative shrink-0 group cursor-pointer">
+              {selectedImage ?
+                <img src={selectedImage} className="object-cover size-[68px] rounded-full bg-[#2a2736] flex items-center justify-center text-gray-500 border border-white/5 hover:bg-card-dark transition-colors" />
+                :
+                <div className="size-[68px] rounded-full bg-[#2a2736] flex items-center justify-center text-gray-500 border border-white/5 hover:bg-card-dark transition-colors">
+                  <Camera className="size-10 text-center" />
+                </div>
+              }
+              <input
+                id="group-image"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </label>
             <div className="flex-1 border-b border-white/10 focus-within:border-primary transition-colors pb-1">
               <input
                 className="w-full bg-transparent border-none outline-none p-0 text-[17px] text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
@@ -66,7 +85,36 @@ const NewGroupScreenView = (props) => {
           </div>
         </div>
 
-        <div className="sticky top-0 z-30 bg-sidebar-dark/95 backdrop-blur-sm px-4 py-2 border-b border-white/5">
+        {/* Participants chips */}
+        {checkList.length > 0 && (
+          <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-white/5">
+            {checkList.map((id) => {
+              const contact = selectedUsers.find((u) => u._id === id);
+              if (!contact) return null;
+              return (
+                <div
+                  key={id}
+                  className="flex items-center gap-1.5 bg-primary/20 text-primary text-xs px-2.5 py-1 rounded-full"
+                >
+                  <img
+                    src={contact.profilePicture || Avatar}
+                    className="size-4 rounded-full object-cover"
+                  />
+                  <span>{contact.fullName}</span>
+                  <button
+                    onClick={() => handleCheck(contact)}
+                    className="text-primary hover:text-white transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Search bar */}
+        <div className="sticky top-0 z-30 bg-sidebar-dark px-4 py-2 border-b border-white/5">
           <div className="relative flex w-full items-center">
             <div className="absolute left-3 flex items-center pointer-events-none text-gray-500">
               <Search className="size-5" />
@@ -96,23 +144,24 @@ const NewGroupScreenView = (props) => {
             </h3>
           </div>
           <div className="flex flex-col px-2 space-y-1">
-            {!searchQuery && (
+
+            {isSearchLoading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader className="size-8 animate-spin text-primary" />
+              </div>
+            )}
+
+            {!searchQuery && !(checkList.length > 0) && (
               <div className="text-center py-12">
                 <SearchIcon className="size-10 text-slate-400 mx-auto mb-3" />
                 <p className="text-slate-400">Search for users to add</p>
               </div>
             )}
 
-            {searchQuery && users.length === 0 && !isSearchLoading && (
+            {!isSearchLoading && searchQuery && users.length === 0 && (
               <p className="text-center text-gray-500 text-sm py-8">
                 No users found
               </p>
-            )}
-
-            {isSearchLoading && (
-              <div className="flex items-center justify-center py-12">
-                <Loader className="size-8 animate-spin text-primary" />
-              </div>
             )}
 
             {users.map((contact) => (
@@ -121,14 +170,12 @@ const NewGroupScreenView = (props) => {
                 className={
                   "flex items-center gap-3 p-2 rounded-xl hover:bg-surface-hover transition-colors w-full text-left group"
                 }
-                onClick={() => handleCheck(contact._id)}
+                onClick={() => handleCheck(contact)}
               >
                 <div className="relative shrink-0">
-                  <div
-                    className="h-12 w-12 rounded-full bg-cover bg-center border border-white/10"
-                    style={{
-                      backgroundImage: `url(${contact.profilePicture || "/avatar.png"})`,
-                    }}
+                  <img
+                    src={contact.profilePicture || Avatar}
+                    className="h-12 w-12 rounded-full object-cover bg-center border border-white/10"
                   />
                   {onlineUsers.includes(contact._id) && (
                     <span className="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-background-dark rounded-full"></span>

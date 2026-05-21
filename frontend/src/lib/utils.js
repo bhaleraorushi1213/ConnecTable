@@ -4,7 +4,7 @@ export const formatMessageTime = (date) => {
     minute: "2-digit",
     hour12: false,
   });
-}
+};
 
 export const getChatName = (chat, authUser) => {
   if (chat.isGroupChat) {
@@ -13,7 +13,7 @@ export const getChatName = (chat, authUser) => {
   const otherUser = chat.users.find((user) => user._id !== authUser._id);
 
   return otherUser?.fullName || "User";
-}
+};
 
 export const isUserOnline = (chat, onlineUsers, authUser) => {
   if (chat.isGroupChat) {
@@ -23,4 +23,31 @@ export const isUserOnline = (chat, onlineUsers, authUser) => {
   const filteredUser = chat.users.find((user) => user._id !== authUser._id);
 
   return filteredUser ? onlineUsers.includes(filteredUser._id) : false;
-}
+};
+
+export const isSameDay = (date1, date2) => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
+
+export const formatDateSeparator = (date) => {
+  const d = new Date(date);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (isSameDay(d, now)) return "Today";
+  if (isSameDay(d, yesterday)) return "Yesterday";
+
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
+};

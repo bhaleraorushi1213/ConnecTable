@@ -1,6 +1,6 @@
 import { useAuthStore } from "../../../../store/useAuthStore";
 import { useChatStore } from "../../../../store/useChatStore";
-import { ChevronRight, CircleX, Loader, SearchIcon } from "lucide-react";
+import { ChevronRight, CircleX, Loader, Plus, SearchIcon, UsersIcon } from "lucide-react";
 
 import Avatar from "../../../../assets/default-avatar.png";
 
@@ -58,12 +58,11 @@ const NewChatListView = (props) => {
         <div className="px-4 py-2 space-y-1">
           <button
             onClick={() => onNavigate("newGroup")}
-            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-card-dark transition-colors group text-left"
+            className=" w-full flex items-center gap-3 p-3 rounded-xl hover:bg-card-dark transition-colors group text-left"
           >
-            <div className="flex items-center justify-center size-10 rounded-full bg-primary/15 text-primary group-active:scale-95 transition-transform">
-              <span className="material-symbols-outlined text-[24px]">
-                group_add
-              </span>
+            <div className="relative flex items-center justify-center size-10 rounded-full bg-primary/15 text-primary group-active:scale-95 transition-transform">
+              <UsersIcon className="size-6 absolute left-1" />
+              <Plus className="size-4 absolute bottom-3 -right-0" />
             </div>
             <div className="flex flex-col items-start">
               <span className="text-primary font-semibold text-[17px]">

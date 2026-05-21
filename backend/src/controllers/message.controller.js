@@ -115,7 +115,6 @@ export const sendMessage = async (req, res) => {
 
 		chatMembers.forEach((memberId) => {
 			const memberSocketId = getReceiverSocketId(memberId.toString());
-			console.log("Emitting to", memberId.toString(), "socketId", memberSocketId); // 👈 add this log
 
 			if (memberSocketId) {
 				io.to(memberSocketId).emit("newMessage", fullMessage);
@@ -125,6 +124,55 @@ export const sendMessage = async (req, res) => {
 		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+// @desc    Delete a message
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+export const deleteMessage = async (req, res) => {
+	const { messageId } = req.params;
+	const userId = req.user._id;
+
+	try {
+		const message = await Message.findById(messageId);
+
+		if (!message) {
+			return res.status(404).json({ message: "Message not found" });
+		}
+
+		// only sender can delete
+		if (message.senderId.toString() !== userId.toString()) {
+			return res.status(403).json({ message: "You can only delete your own messages" });
+		}
+
+		await Message.findByIdAndDelete(messageId);
+
+		// update latestMessage if this was the latest
+		const chat = await Chat.findById(message.chat);
+		if (chat.latestMessage?.toString() === messageId) {
+			const prevMessage = await Message.findOne({ chat: message.chat })
+				.sort({ createdAt: -1 });
+			await Chat.findByIdAndUpdate(message.chat, {
+				latestMessage: prevMessage?._id || null,
+			});
+		}
+
+		// notify chat members
+		chat.users.forEach((memberId) => {
+			const memberSocketId = getReceiverSocketId(memberId.toString());
+			if (memberSocketId) {
+				io.to(memberSocketId).emit("messageDeleted", {
+					messageId,
+					chatId: message.chat,
+				});
+			}
+		});
+
+		res.status(200).json({ message: "Message deleted" });
+	} catch (error) {
+		console.log("Error in deleteMessage controller", error.message);
 		res.status(500).json({ message: "Internal server error" });
 	}
 };
@@ -167,7 +215,6 @@ export const markAsRead = async (req, res) => {
 	}
 };
 
-
 // @desc    Get unread count
 // @route   PUT /api/messages/unreadCount
 // @access  Protected
@@ -207,3 +254,58 @@ export const getUnreadCount = async (req, res) => {
 	}
 };
 
+// @desc    React to a message
+// @route   PUT /api/messages/react/:messageId
+// @access  Protected
+export const reactToMessage = async (req, res) => {
+	const { messageId } = req.params;
+	const { emoji } = req.body;
+	const userId = req.user._id;
+
+	try {
+		const message = await Message.findById(messageId);
+
+		if (!message) {
+			return res.status(404).json({ message: "Message not found" });
+		}
+
+		const existingReaction = message.reactions.find(
+			(r) => r.userId.toString() === userId.toString()
+		);
+
+		if (existingReaction) {
+			if (existingReaction.emoji === emoji) {
+				// remove reaction if same emoji clicked again
+				message.reactions = message.reactions.filter(
+					(r) => r.userId.toString() !== userId.toString()
+				);
+			} else {
+				// update to new emoji
+				existingReaction.emoji = emoji;
+			}
+		} else {
+			// add new reaction
+			message.reactions.push({ userId, emoji });
+		}
+
+		await message.save();
+
+		const updatedMessage = await Message.findById(messageId)
+			.populate("senderId", "fullName profilePicture email")
+			.populate("reactions.userId", "fullName");
+
+		// notify chat members via socket
+		const chat = await Chat.findById(message.chat);
+		chat.users.forEach((memberId) => {
+			const memberSocketId = getReceiverSocketId(memberId.toString());
+			if (memberSocketId) {
+				io.to(memberSocketId).emit("messageReaction", updatedMessage);
+			}
+		});
+
+		res.status(200).json(updatedMessage);
+	} catch (error) {
+		console.log("Error in reactToMessage controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
