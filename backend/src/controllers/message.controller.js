@@ -308,8 +308,6 @@ export const reactToMessage = async (req, res) => {
 			.populate("senderId", "fullName profilePicture email")
 			.populate("reactions.userId", "fullName");
 
-		// notify chat members via socket
-		const chat = await Chat.findById(message.chat);
 		chat.users.forEach((memberId) => {
 			const memberSocketId = getReceiverSocketId(memberId.toString());
 			if (memberSocketId) {
