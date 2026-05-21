@@ -29,8 +29,12 @@ const ProfilePageView = (props) => {
         <button
           onClick={async () => {
             if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-              await deleteAccount();
-              navigate("/login");
+              try {
+                await deleteAccount();
+                navigate("/login");
+              } catch (error) {
+                console.error("Failed to delete account:", error);
+              }
             }
           }}
           className="w-full py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
@@ -270,7 +274,7 @@ const ProfilePageView = (props) => {
 
           {renderMemberSinceField()}
 
-          {renderAccountStatusField}
+          {renderAccountStatusField()}
 
         </div>
         {renderDeleteAccountField()}

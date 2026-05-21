@@ -4,7 +4,7 @@ export const useThemeStore = create((set) => ({
   theme: localStorage.getItem("chat-theme") || "light",
   soundEnabled: localStorage.getItem("soundEnabled") !== "false",
   notificationsEnabled: localStorage.getItem("notificationsEnabled") !== "false",
-  messageVolume: Number(localStorage.getItem("messageVolume")) || 0.5,
+  messageVolume: localStorage.getItem("messageVolume") !== null ? Number(localStorage.getItem("messageVolume")) : 0.5,
 
   setTheme: (newTheme) => {
     localStorage.setItem("chat-theme", newTheme);

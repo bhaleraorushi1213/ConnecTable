@@ -167,7 +167,7 @@ export const updateProfile = async (req, res) => {
           { width: 400, height: 400, crop: "fill", gravity: "face" },
         ],
       });
-      updates.profilePicture = uploadResponse.secure_url;
+      updates.profilePicturePublicId = uploadResponse.public_id;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -239,9 +239,8 @@ export const deleteAccount = async (req, res) => {
 
     // delete profile picture from cloudinary
     const user = await User.findById(userId);
-    if (user?.profilePicture) {
-      const publicId = user.profilePicture.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(`profile_pictures/${publicId}`);
+    if (user?.profilePicturePublicId) {
+        await cloudinary.uploader.destroy(user.profilePicturePublicId);
     }
 
     // delete user

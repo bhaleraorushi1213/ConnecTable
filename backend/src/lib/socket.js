@@ -47,7 +47,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("typing", (room, senderId) => socket.in(room).emit("typing", senderId));
-  socket.on("stopTyping", (room, senderId) => socket.in(room).emit("stopedTyping", senderId));
+  socket.on("stopTyping", (room, senderId) => socket.in(room).emit("stopTyping", senderId));
 
   socket.on("disconnect", async () => {
     console.log("A user disconnected", socket.id);

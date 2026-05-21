@@ -6,13 +6,13 @@ const router = express.Router();
 
 router.get("/unreadCount", protectRoute, getUnreadCount);
 
+router.get("/search/:chatId", protectRoute, searchMessages);
+
 router.get("/:chatId", protectRoute, getAllMessages);
 
 router.post("/send/:chatId", protectRoute, sendMessage);
 
 router.delete("/:messageId", protectRoute, deleteMessage);
-
-router.get("/search/:chatId", protectRoute, searchMessages);
 
 router.put("/markAsRead/:chatId", protectRoute, markAsRead);
 

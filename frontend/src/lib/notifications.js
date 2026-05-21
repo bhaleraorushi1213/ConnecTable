@@ -19,19 +19,22 @@ export const showBrowserNotification = (title, options = {}) => {
 
   // don't show if tab is focused
   if (document.visibilityState === "visible") return;
+  try {
+    const notification = new Notification(title, {
+      icon: "/logo.png",
+      badge: "/logo.png",
+      ...options,
+    });
 
-  const notification = new Notification(title, {
-    icon: "/logo.png",
-    badge: "/logo.png",
-    ...options,
-  });
+    const timeoutId = setTimeout(() => notification.close(), 5000);
 
-  // auto close after 5 seconds
-  setTimeout(() => notification.close(), 5000);
-
-  // focus window on click
-  notification.onclick = () => {
-    window.focus();
-    notification.close();
-  };
+    // focus window on click
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      clearTimeout(timeoutId);
+    };
+  } catch (error) {
+    console.log("Failed to show notification:", error);
+  }
 };

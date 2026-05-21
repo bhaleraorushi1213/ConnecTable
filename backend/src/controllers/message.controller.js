@@ -156,9 +156,6 @@ export const sendMessage = async (req, res) => {
 		if (senderSocketId) {
 			io.to(senderSocketId).emit("newMessage:global", fullMessage);
 		}
-
-		console.log("senderSocketId:", senderSocketId, "senderId:", senderId.toString());
-
 		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);

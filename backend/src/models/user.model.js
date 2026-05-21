@@ -24,9 +24,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    bio: { 
-      type: String, default: "", 
-      maxLength: 150 
+    bio: {
+      type: String, default: "",
+      maxlength: 150
     },
     isAdmin: {
       type: Boolean,

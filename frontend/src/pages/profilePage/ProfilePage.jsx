@@ -44,6 +44,7 @@ const ProfilePage = () => {
       setImagePreview(null);
     } catch (error) {
       console.log("Error saving profile", error);
+      toast.error("Failed to save profile. Please try again.");
     }
   };
 

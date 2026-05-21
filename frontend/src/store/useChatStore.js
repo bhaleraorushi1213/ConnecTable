@@ -267,7 +267,7 @@ export const useChatStore = create((set, get) => ({
       const messageToForward = messages.find((m) => m._id === messageId);
       if (!messageToForward) return;
 
-      const results = await Promise.all(
+      const results = await Promise.allSettled(
         chatIds.map((chatId) =>
           axiosInstance.post(`/messages/send/${chatId}`, {
             text: messageToForward.text,
@@ -277,20 +277,30 @@ export const useChatStore = create((set, get) => ({
         )
       );
 
+      const successful = results.filter((r) => r.status === "fulfilled");
+      const failed = results.filter((r) => r.status === "rejected");
+
       const updatedUsers = users.map((chat) => {
-        const forwardedResult = results.find(
-          (r) => r.data.chat._id === chat._id
+        const forwardedResult = successful.find(
+          (r) => r.value.data.chat._id === chat._id
         );
+
         return forwardedResult
-          ? { ...chat, latestMessage: forwardedResult.data }
+          ? { ...chat, latestMessage: forwardedResult.value.data }
           : chat;
       });
 
       set({ forwardingMessage: null, users: updatedUsers });
-      toast.success("Message forwarded");
+      if (failed.length === 0) {
+        toast.success("Message forwarded");
+      } else if (successful.length === 0) {
+        toast.error("Failed to forward message");
+      } else {
+        toast.success(`Forwarded to ${successful.length} of ${chatIds.length} chats`);
+      }
+
     } catch (error) {
       console.log("Error forwarding message", error);
-      toast.error("Failed to forward message");
     }
   },
 
