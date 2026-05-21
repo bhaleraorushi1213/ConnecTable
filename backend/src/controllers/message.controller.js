@@ -63,7 +63,7 @@ export const getAllMessages = async (req, res) => {
 //@access          Protected
 export const sendMessage = async (req, res) => {
 	try {
-		const { text, image } = req.body;
+		const { text, image, replyTo } = req.body;
 		const { chatId } = req.params;
 		const senderId = req.user._id;
 
@@ -100,6 +100,7 @@ export const sendMessage = async (req, res) => {
 			chat: chatId,
 			image: imageUrl,
 			readBy: [senderId],
+			replyTo: replyTo || null,
 		});
 
 		const fullMessage = await Message.findById(newMessage._id)
@@ -107,6 +108,10 @@ export const sendMessage = async (req, res) => {
 			.populate({
 				path: "chat",
 				populate: { path: "users", select: "fullName profilePicture email" }
+			})
+			.populate({
+				path: "replyTo",
+				populate: { path: "senderId", select: "fullName profilePicture" },
 			});
 
 		await Chat.findByIdAndUpdate(chatId, { latestMessage: fullMessage });
@@ -273,7 +278,7 @@ export const reactToMessage = async (req, res) => {
 		if (!chat) {
 			return res.status(404).json({ message: "Chat not found" });
 		}
-		
+
 		const isMember = chat.users.some((u) => u.toString() === userId.toString());
 		if (!isMember) {
 			return res.status(403).json({ message: "You are not a member of this chat" });

@@ -74,6 +74,7 @@ const ChatContainerView = (props) => {
       `}>
 
       <ChatHeader />
+      
       {renderMessages()}
 
       {isTyping && (

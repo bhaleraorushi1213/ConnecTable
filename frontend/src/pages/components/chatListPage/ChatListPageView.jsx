@@ -169,7 +169,7 @@ const ChatListPageView = (props) => {
       {renderTabs()}
 
       {/* Conversation List */}
-      <div className="flex flex-1 flex-col overflow-y-scroll h-[calc(100svh-200px)] custom-scrollbar py-2">
+      <div className="flex flex-1 flex-col overflow-auto h-[calc(100svh-200px)] custom-scrollbar py-2">
         {isUsersLoading ? <ChatListPageSkeleton /> : renderConversations()}
       </div>
 

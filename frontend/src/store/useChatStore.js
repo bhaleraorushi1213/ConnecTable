@@ -17,6 +17,11 @@ export const useChatStore = create((set, get) => ({
   isSidebarOpen: false,
   mobileView: "list",
   activeTab: "all",
+  replyingTo: null,
+
+  setReplyingTo: (message) => set({ replyingTo: message }),
+
+  clearReplyingTo: () => set({ replyingTo: null }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -102,7 +107,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedChat, messages, users } = get();
+    const { selectedChat, messages, users, replyingTo } = get();
 
     if (!selectedChat) {
       toast.error("No chat selected");
@@ -112,7 +117,7 @@ export const useChatStore = create((set, get) => ({
     set({ isMessageSending: true });
 
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedChat._id}`, messageData);
+      const res = await axiosInstance.post(`/messages/send/${selectedChat._id}`, { ...messageData, replyTo: replyingTo?._id || null });
 
       const updatedUsers = users.map((chat) =>
         chat._id === selectedChat._id
@@ -120,7 +125,11 @@ export const useChatStore = create((set, get) => ({
           : chat
       );
 
-      set({ messages: [...messages, res.data], users: updatedUsers, });
+      set({
+        messages: [...messages, res.data],
+        users: updatedUsers,
+        replyingTo: null
+      });
     } catch (error) {
       console.log("Error in sendMessages", error);
       toast.error("Failed to send messages. Please try again.");
