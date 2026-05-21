@@ -44,20 +44,11 @@ const MessageBubbleView = (props) => {
     const el = document.getElementById(`message-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-      // highlight briefly
+
       el.classList.add("bg-primary/10");
       setTimeout(() => el.classList.remove("bg-primary/10"), 1500);
     }
   };
-
-  // const groupedReactions = message.reactions?.reduce((acc, r) => {
-  //   acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-  //   return acc;
-  // }, {});
-
-  // const myReaction = message.reactions?.find(
-  //   (r) => r.userId?._id === authUser._id || r.userId === authUser._id
-  // );
 
   const replyPreview = (replyTo) => {
     if (!replyTo) return null;
@@ -197,7 +188,8 @@ const MessageBubbleView = (props) => {
   return (
     <div
       key={`message-${message._id}`}
-      className={`relative my-2 mx-0 chat ${isOwnMessage ? "chat-end flex flex-col" : "chat-start"}`}
+      id={`message-${message._id}`}
+      className={`relative my-2 p-2 chat ${isOwnMessage ? "chat-end flex flex-col" : "chat-start"}`}
     >
       {!isOwnMessage && renderAvatar()}
 
