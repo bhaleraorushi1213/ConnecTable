@@ -1,27 +1,48 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
-import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore.js";
+import { useThemeStore } from "./useThemeStore.js";
+
+import { playSound } from "../lib/sounds.js";
+import { showBrowserNotification } from "../lib/notifications.js";
+
 import { SOCKET_EVENTS } from "../constants";
+import toast from "react-hot-toast";
 
 export const useChatStore = create((set, get) => ({
   messages: [],
   users: [],
   unreadCounts: {},
+  searchResults: [],
   selectedChat: null,
+  replyingTo: null,
+  forwardingMessage: null,
+  searchQuery: "",
+  mobileView: "list",
+  activeTab: "all",
+  currentPage: 1,
+  hasMoreMessages: false,
+  isLoadingMoreMessages: false,
+  isSearching: false,
+  isSearchOpen: false,
   isUsersLoading: false,
   isMessagesLoading: false,
   isMessageSending: false,
   isNewChatModalOpen: false,
   isTyping: false,
   isSidebarOpen: false,
-  mobileView: "list",
-  activeTab: "all",
-  replyingTo: null,
+
+  setSearchQuery: (query) => set({ searchQuery: query }),
+
+  setIsSearchOpen: (value) => set({ isSearchOpen: value, searchQuery: "", searchResults: [] }),
 
   setReplyingTo: (message) => set({ replyingTo: message }),
 
   clearReplyingTo: () => set({ replyingTo: null }),
+
+  setForwardingMessage: (message) => set({ forwardingMessage: message }),
+
+  clearForwardingMessage: () => set({ forwardingMessage: null }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -37,8 +58,30 @@ export const useChatStore = create((set, get) => ({
     set({ selectedChat: chat });
     get().clearUnreadCount(chat?._id);
 
+    if (!chat) return;
+
     try {
-      await axiosInstance.put(`/messages/markAsRead/${chat._id}`);
+      await axiosInstance.put(`/messages/markAsRead/${chat?._id}`);
+
+      if (!chat.isGroupChat) {
+        const { authUser, lastSeenMap } = useAuthStore.getState();
+
+        const otherUser = chat.users?.find(
+          (u) => u._id !== authUser._id
+        );
+
+        if (otherUser) {
+          const res = await axiosInstance.get(
+            `/auth/lastSeen/${otherUser._id}`
+          );
+          useAuthStore.setState({
+            lastSeenMap: {
+              ...lastSeenMap,
+              [otherUser._id]: res.data.lastSeen,
+            },
+          });
+        }
+      }
     } catch (error) {
       console.log("Error marking messages as read", error);
     }
@@ -92,12 +135,29 @@ export const useChatStore = create((set, get) => ({
     return users;
   },
 
-  getMessages: async (chatId) => {
-    set({ isMessagesLoading: true });
+  getMessages: async (chatId, page = 1) => {
+    if (page === 1) {
+      set({ isMessagesLoading: true, currentPage: 1 });
+    } else {
+      set({ isLoadingMoreMessages: true });
+    }
 
     try {
-      const res = await axiosInstance.get(`/messages/${chatId}`);
-      set({ messages: res.data });
+      const res = await axiosInstance.get(`/messages/${chatId}?page=${page}&limit=30`);
+
+      const { messages: newMessages, pagination } = res.data;
+
+      if (page === 1) {
+        set({ messages: newMessages });
+      } else {
+        // prepend older messages
+        set({ messages: [...newMessages, ...get().messages] });
+      }
+
+      set({
+        hasMoreMessages: pagination.hasMore,
+        currentPage: pagination.page,
+      });
     } catch (error) {
       console.log("Error in getMessages", error);
       toast.error("Failed to load messages. Please try again.");
@@ -106,8 +166,17 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  loadMoreMessages: async () => {
+    const { selectedChat, currentPage, hasMoreMessages, isLoadingMoreMessages } = get();
+
+    if (!hasMoreMessages || isLoadingMoreMessages) return;
+
+    await get().getMessages(selectedChat._id, currentPage + 1);
+  },
+
   sendMessage: async (messageData) => {
     const { selectedChat, messages, users, replyingTo } = get();
+    const { soundEnabled, messageVolume } = useThemeStore.getState();
 
     if (!selectedChat) {
       toast.error("No chat selected");
@@ -124,6 +193,8 @@ export const useChatStore = create((set, get) => ({
           ? { ...chat, latestMessage: res.data }
           : chat
       );
+
+      if (soundEnabled) playSound("sent", messageVolume);
 
       set({
         messages: [...messages, res.data],
@@ -149,6 +220,26 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  searchMessages: async (chatId, query) => {
+    if (!query?.trim()) {
+      set({ searchResults: [] });
+      return;
+    }
+    set({ isSearching: true });
+
+    try {
+      const res = await axiosInstance.get(
+        `/messages/search/${chatId}?query=${query}`
+      );
+      set({ searchResults: res.data });
+    } catch (error) {
+      console.log("Error in searchMessages", error);
+      toast.error("Failed to search messages");
+    } finally {
+      set({ isSearching: false });
+    }
+  },
+
   reactToMessage: async (messageId, emoji) => {
     try {
       const res = await axiosInstance.put(
@@ -166,6 +257,50 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       console.log("Error in reactToMessage", error);
       toast.error("Failed to react to message");
+    }
+  },
+
+  forwardMessage: async (messageId, chatIds) => {
+    try {
+      const { messages, users } = get();
+
+      const messageToForward = messages.find((m) => m._id === messageId);
+      if (!messageToForward) return;
+
+      const results = await Promise.allSettled(
+        chatIds.map((chatId) =>
+          axiosInstance.post(`/messages/send/${chatId}`, {
+            text: messageToForward.text,
+            image: messageToForward.image,
+            isForward: true,
+          })
+        )
+      );
+
+      const successful = results.filter((r) => r.status === "fulfilled");
+      const failed = results.filter((r) => r.status === "rejected");
+
+      const updatedUsers = users.map((chat) => {
+        const forwardedResult = successful.find(
+          (r) => r.value.data.chat._id === chat._id
+        );
+
+        return forwardedResult
+          ? { ...chat, latestMessage: forwardedResult.value.data }
+          : chat;
+      });
+
+      set({ forwardingMessage: null, users: updatedUsers });
+      if (failed.length === 0) {
+        toast.success("Message forwarded");
+      } else if (successful.length === 0) {
+        toast.error("Failed to forward message");
+      } else {
+        toast.success(`Forwarded to ${successful.length} of ${chatIds.length} chats`);
+      }
+
+    } catch (error) {
+      console.log("Error forwarding message", error);
     }
   },
 
@@ -303,31 +438,51 @@ export const useChatStore = create((set, get) => ({
     socket.off(SOCKET_EVENTS.STOP_TYPING);
   },
 
-  subscribeToMessages: (selectedChat) => {
-    if (!selectedChat) return;
-
+  subscribeToGlobalMessages: () => {
     const socket = useAuthStore.getState().socket;
 
-    if (!socket || !socket.connected) {
-      console.log("Socket not connected");
+    if (!socket) {
+      console.log("No socket instance");
       return;
     }
 
-    socket.on("newMessage", (newMessage) => {
-      const { users, unreadCounts } = get();
+    if (!socket.connected) {
+      console.log("Socket not connected, waiting...");
+      socket.once("connect", () => {
+        console.log("Socket connected, subscribing...");
+        useChatStore.getState().subscribeToGlobalMessages();
+      });
+      return;
+    }
+
+    socket.on("newMessage:global", (newMessage) => {
+      const { users, unreadCounts, selectedChat } = get();
+      const { soundEnabled, messageVolume, notificationsEnabled } = useThemeStore.getState();
 
       const newMessageChatId =
         typeof newMessage.chat === "object"
           ? newMessage.chat._id.toString()
           : newMessage.chat.toString();
 
+      // always update latest message in list
       const updatedUsers = users.map((chat) =>
         chat._id.toString() === newMessageChatId
           ? { ...chat, latestMessage: newMessage }
           : chat
       );
 
-      if (newMessageChatId !== selectedChat._id.toString()) {
+      // only increment badge if not currently viewing that chat
+      if (newMessageChatId !== selectedChat?._id?.toString()) {
+        if (soundEnabled) playSound("notification", messageVolume);
+
+        if (notificationsEnabled) {
+          const senderName = newMessage.senderId?.fullName || "Someone";
+          showBrowserNotification(senderName, {
+            body: newMessage.text || "📷 Sent an image",
+            tag: newMessageChatId,
+          });
+        }
+
         set({
           users: updatedUsers,
           unreadCounts: {
@@ -335,12 +490,71 @@ export const useChatStore = create((set, get) => ({
             [newMessageChatId]: (unreadCounts[newMessageChatId] || 0) + 1,
           },
         });
-        return;
-      };
+      } else {
+        // just update the list without badge
+        set({ users: updatedUsers });
+      }
+    });
+
+    socket.on("addedToGroup", (newChat) => {
+      const { users } = get();
+      const exists = users.find((u) => u._id === newChat._id);
+      if (!exists) {
+        set({ users: [newChat, ...users] });
+      }
+      toast.success(`You were added to ${newChat.chatName}`);
+    });
+
+    socket.on("removedFromGroup", (chatId) => {
+      const { users, selectedChat } = get();
+      set({ users: users.filter((u) => u._id !== chatId) });
+      if (selectedChat?._id === chatId) {
+        set({ selectedChat: null, mobileView: "list" });
+        toast.error("You were removed from the group");
+      }
+    });
+
+    socket.on("groupUpdated", (updatedChat) => {
+      const { users } = get();
+      set({
+        users: users.map((u) =>
+          u._id === updatedChat._id ? updatedChat : u
+        ),
+      });
+    });
+  },
+
+  unsubscribeFromGlobalMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+    socket.off("newMessage:global");
+    socket.off("addedToGroup");
+    socket.off("removedFromGroup");
+    socket.off("groupUpdated");
+  },
+
+  // local subscription - only handles messages array in chat view
+  subscribeToMessages: (selectedChat) => {
+    if (!selectedChat) return;
+
+    const socket = useAuthStore.getState().socket;
+    if (!socket?.connected) return;
+
+    socket.on("newMessage", (newMessage) => {
+      const { soundEnabled, messageVolume } = useThemeStore.getState();
+
+      const newMessageChatId =
+        typeof newMessage.chat === "object"
+          ? newMessage.chat._id.toString()
+          : newMessage.chat.toString();
+
+      // only add to messages array if it belongs to current chat
+      if (newMessageChatId !== selectedChat._id.toString()) return;
+
+      if (soundEnabled) playSound("message", messageVolume);
 
       set({
         messages: [...get().messages, newMessage],
-        users: updatedUsers,
         isTyping: false,
       });
     });
@@ -358,42 +572,13 @@ export const useChatStore = create((set, get) => ({
         ),
       });
     });
-
-    socket.on("addedToGroup", (newChat) => {
-      const { users } = get();
-      const exists = users.find((u) => u._id === newChat._id);
-      if (!exists) {
-        set({ users: [newChat, ...users] });
-      }
-      toast.success(`You were added to ${newChat.chatName}`);
-    });
-
-    socket.on("removedFromGroup", (chatId) => {
-      const { users, selectedChat } = get();
-      set({ users: users.filter((u) => u._id !== chatId) });
-
-      if (selectedChat?._id === chatId) {
-        set({ selectedChat: null, mobileView: "list" });
-        toast.error("You were removed from the group");
-      }
-    });
-
-    socket.on("groupUpdated", (updatedChat) => {
-      const { users } = get();
-      set({
-        users: users.map((u) => u._id === updatedChat._id ? updatedChat : u),
-        selectedChat: updatedChat,
-      });
-    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
     socket.off("newMessage");
     socket.off("messageDeleted");
     socket.off("messageReaction");
-    socket.off("removedFromGroup");
-    socket.off("addedToGroup");
-    socket.off("groupUpdated");
   },
 }));

@@ -11,13 +11,32 @@ const ChatListPage = (props) => {
 		getUsers,
 		setSelectedChat,
 		setMobileView,
-		getUnreadCounts
+		getUnreadCounts,
+		subscribeToGlobalMessages,
+    unsubscribeFromGlobalMessages,
 	} = useChatStore();
+
+	const { socket } = useAuthStore();
 
 	useEffect(() => {
 		getUsers();
 		getUnreadCounts();
 	}, []);
+
+	useEffect(() => {
+		if (!socket) return;
+
+		if (socket.connected) {
+      subscribeToGlobalMessages();
+    } else {
+      socket.once("connect", subscribeToGlobalMessages);
+    }
+
+    return () => {
+      unsubscribeFromGlobalMessages();
+      socket.off("connect", subscribeToGlobalMessages);
+    };
+  }, [socket]);
 
 	const handleChangeTabs = (tab,) => {
 		setActiveTab(tab);
@@ -27,8 +46,7 @@ const ChatListPage = (props) => {
 		setMobileView("chat");
 		setSelectedChat(user);
 
-		const socket = useAuthStore.getState().socket;
-
+		const { socket } = useAuthStore.getState();
 		if (!socket) {
 			console.error("Socket not initialized");
 			return;

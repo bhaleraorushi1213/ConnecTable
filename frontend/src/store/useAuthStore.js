@@ -3,19 +3,21 @@ import { axiosInstance } from "../lib/axios.js";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 import { useChatStore } from "./useChatStore.js";
+import { requestNotificationPermission } from "../lib/notifications.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
+  socket: null,
+  users: [],
+  onlineUsers: [],
+  lastSeenMap: {}, // { userId: lastSeen }
   isSigningUp: false,
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
   isSearchLoading: false,
-  socket: null,
-  users: [],
-  onlineUsers: [],
 
   setIsSearchLoading: (value) => set({ isSearchLoading: value }),
 
@@ -65,6 +67,8 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       toast.success("Login successfully!");
 
+      await requestNotificationPermission();
+
       get().connectSocket();
     } catch (error) {
       toast.error(error?.response?.data?.message);
@@ -113,6 +117,18 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  deleteAccount: async () => {
+    try {
+      await axiosInstance.delete("/auth/delete-account");
+      set({ authUser: null });
+      get().disconnectSocket();
+      toast.success("Account deleted successfully");
+    } catch (error) {
+      console.log("Error deleting account", error);
+      toast.error("Failed to delete account");
+    }
+  },
+
   connectSocket: () => {
     const { authUser } = get()
 
@@ -129,6 +145,16 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
+    });
+
+    socket.on("userLastSeen", ({ userId, lastSeen }) => {
+      const { lastSeenMap } = get();
+      set({
+        lastSeenMap: {
+          ...lastSeenMap,
+          [userId]: lastSeen,
+        },
+      });
     });
   },
 

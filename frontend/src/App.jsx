@@ -8,11 +8,10 @@ import { Toaster } from "react-hot-toast";
 
 import HomePage from "./pages/HomePage";
 import SettingsPage from "./pages/SettingsPage";
-import ProfilePage from "./pages/ProfilePage";
+import ProfilePage from "./pages/profilePage/ProfilePage.jsx";
 import SignUpPage from "./pages/signup/SignUpPage";
 import LoginPage from "./pages/login/LoginPage";
 import Navbar from "./components/Navbar";
-import TestPage from "./TestPage.jsx";
 
 const App = () => {
 	const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -41,7 +40,7 @@ const App = () => {
 
 	return (
 		<>
-			<div data-theme={theme} className="h-screen">
+			<div data-theme={theme} className="h-full">
 				<Navbar />
 
 				<Routes>
@@ -67,12 +66,6 @@ const App = () => {
 
 				<Toaster />
 			</div>
-			{/* <Routes>
-				<Route
-					path="/test"
-					element={<TestPage />}
-				/>
-			</Routes> */}
 		</>
 	);
 };

@@ -9,10 +9,18 @@ import Avatar from "../../../assets/default-avatar.png";
 import { formatDateSeparator, isSameDay } from "../../../lib/utils.js";
 
 const ChatContainerView = (props) => {
-  const { messageEndRef } = props;
+  const { messageEndRef, scrollContainerRef } = props;
 
   const { authUser } = useAuthStore();
-  const { mobileView, isMessagesLoading, messages, selectedChat, isTyping } = useChatStore();
+  const {
+    mobileView,
+    isMessagesLoading,
+    messages,
+    selectedChat,
+    isTyping,
+    hasMoreMessages,
+    isLoadingMoreMessages,
+  } = useChatStore();
 
   if (isMessagesLoading) {
     return (
@@ -26,7 +34,25 @@ const ChatContainerView = (props) => {
 
   const renderMessages = () => {
     return (
-      <div className="flex-1 flex flex-col overflow-auto px-4">
+      <div className="flex-1 flex flex-col overflow-auto px-4" ref={scrollContainerRef}>
+
+        {/* load more indicator at top */}
+        {isLoadingMoreMessages && (
+          <div className="flex justify-center py-3">
+            <span className="loading loading-spinner loading-sm text-primary" />
+          </div>
+        )}
+
+        {/* end of messages indicator */}
+        {!hasMoreMessages && messages.length > 0 && (
+          <div className="flex items-center gap-3 py-4">
+            <div className="flex-1 h-px bg-slate-700" />
+            <p className="text-xs text-slate-500 shrink-0">
+              Beginning of conversation
+            </p>
+            <div className="flex-1 h-px bg-slate-700" />
+          </div>
+        )}
         {messages.map((message, idx) => {
 
           const prevMessage = messages[idx - 1];
@@ -41,7 +67,7 @@ const ChatContainerView = (props) => {
               : message.senderId === authUser._id;
 
           const senderPic = isOwnMessage
-            ? authUser.profilePicture || Avatar
+            ? authUser?.profilePicture || Avatar
             : selectedChat.isGroupChat
               ? message.senderId?.profilePicture || Avatar
               : selectedChat.profilePicture || Avatar;
@@ -74,7 +100,7 @@ const ChatContainerView = (props) => {
       `}>
 
       <ChatHeader />
-      
+
       {renderMessages()}
 
       {isTyping && (

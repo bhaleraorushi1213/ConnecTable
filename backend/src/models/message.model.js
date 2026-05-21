@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    image:{
+    image: {
       type: String,
     },
     chat: {
@@ -34,6 +34,10 @@ const messageSchema = new mongoose.Schema(
       ref: "Message",
       default: null,
     },
+    isForward: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

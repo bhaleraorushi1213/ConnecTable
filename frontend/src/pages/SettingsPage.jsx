@@ -1,123 +1,182 @@
-import { useThemeStore } from "../store/useThemeStore";
-import { THEMES } from "../constants";
-import { Send } from "lucide-react";
+// src/pages/SettingsPage.jsx
+import { useThemeStore } from "../store/useThemeStore.js";
+import { useAuthStore } from "../store/useAuthStore.js";
+import { requestNotificationPermission } from "../lib/notifications.js";
 
-const PREVIEW_MESSAGES = [
-	{
-		id: 1,
-		content: "Hey! How's it going?",
-		sender: "Alice",
-		timestamp: "10:30 AM",
-		isSent: true,
-	},
-	{
-		id: 2,
-		content: "Not bad, just working on a project. You?",
-		sender: "Bob",
-		timestamp: "10:32 AM",
-		isSent: false,
-	},
+import { ArrowLeft, Bell, BellOff, Volume2, VolumeX } from "lucide-react";
+import { toast } from "react-hot-toast";
+
+import Avatar from "../assets/default-avatar.png";
+import { Link } from "react-router-dom";
+
+const THEMES = [
+	"light", "dark", "cupcake", "forest",
+	"aqua", "synthwave", "cyberpunk", "dracula"
 ];
 
 const SettingsPage = () => {
-	const { theme, setTheme } = useThemeStore();
-	return (
-		<div className="h-screen container mx-auto px-4 pt-20 max-w-5xl">
-			<div className="space-y-6">
-				<div className="flex flex-col gap-1">
-					<h2 className="text-lg font-semibold">Theme</h2>
-					<p className="text-sm text-base-content/70">
-						Choose a theme for your chat interface
-					</p>
-				</div>
+	const {
+		theme,
+		setTheme,
+		soundEnabled,
+		setSoundEnabled,
+		notificationsEnabled,
+		setNotificationsEnabled,
+		messageVolume,
+		setMessageVolume,
+	} = useThemeStore();
 
-				<div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+	const { authUser } = useAuthStore();
+
+	const handleNotificationToggle = async () => {
+		if (!notificationsEnabled) {
+			const granted = await requestNotificationPermission();
+			if (!granted) {
+				toast.error("Please allow notifications in your browser settings");
+				return;
+			}
+		}
+		setNotificationsEnabled(!notificationsEnabled);
+	};
+
+	return (
+		<div className="h-full bg-base-100 p-6 max-w-2xl mx-auto mt-16">
+			<div className="flex gap-x-6 items-center mb-8">
+				<Link to="/" className="hover:bg-base-300 p-3 rounded-full">
+					<ArrowLeft className="size-6" />
+				</Link>
+				<div className="text-2xl font-bold text-white ">Settings</div>
+			</div>
+
+			{/* theme section */}
+			<section className="mb-8">
+				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+					Appearance
+				</h2>
+				<div className="grid grid-cols-4 gap-2">
 					{THEMES.map((t) => (
 						<button
 							key={t}
-							className={`group flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors ${theme === t ? "bg-base-200" : "hover:bg-base-200/50"}`}
 							onClick={() => setTheme(t)}
+							data-theme={t}
+							className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                ${theme === t
+									? "border-primary"
+									: "border-transparent hover:border-slate-600"
+								}`}
 						>
-							<div
-								className="relative h-8 w-full rounded-md overflow-hidden"
-								data-theme={t}
-							>
-								<div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
-									<div className="rounded bg-primary"></div>
-									<div className="rounded bg-secondary"></div>
-									<div className="rounded bg-accent"></div>
-									<div className="rounded bg-neutral"></div>
-								</div>
+							<div className="grid grid-cols-2 gap-0.5 w-8">
+								<div className="h-3 rounded-sm bg-primary" />
+								<div className="h-3 rounded-sm bg-secondary" />
+								<div className="h-3 rounded-sm bg-accent" />
+								<div className="h-3 rounded-sm bg-neutral" />
 							</div>
-							<span className="text-[11px] font-medium truncate w-full text-center">
-								{t.charAt(0).toUpperCase() + t.slice(1)}
+							<span className="text-xs text-white capitalize truncate w-full text-center">
+								{t}
 							</span>
 						</button>
 					))}
 				</div>
+			</section>
 
-				{/* Preview Section */}
-				<h3 className="text-lg font-semibold mb-3">
-					<div className="rounded-xl border border-base-300 overflow-hidden bg-base-100 shadow-lg">
-						<div className="p-4 bg-base-200">
-							<div className="max-w-lg mx-auto">
-								{/* Mock Chat UI */}
-								<div className="bg-base-100 rounded-xl shadow-sm overflow-hidden">
-									{/* Chat Header */}
-									<div className="px-4 py-3 border-b border-base-300 bg-base-100">
-										<div className="flex items-center gap-3">
-											<div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content font-medium">
-												J
-											</div>
-											<div>
-												<h3 className="font-medium text-sm">John Doe</h3>
-												<p className="text-xs text-base-content/70">Online</p>
-											</div>
-										</div>
-									</div>
+			{/* sound section */}
+			<section className="mb-8">
+				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+					Sound
+				</h2>
+				<div className="flex flex-col gap-4 bg-base-200 rounded-xl p-4">
 
-									{/* Chat Message */}
-									<div className="p-4 space-y-4 min-h-[200px] max-h-[200px] overflow-y-auto bg-base-100">
-										{PREVIEW_MESSAGES.map((message) => (
-											<div
-												key={message.id}
-												className={`flex ${message.isSent ? "justify-end" : "justify-start"}`}
-											>
-												<div
-													className={`max-w-[80%] rounded-xl p-3 shadow-sm ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}`}
-												>
-													<p className="text-sm">{message.content}</p>
-													<p
-														className={`text-[10px] mt-1.5 ${message.isSent ? "text-primary-content/70" : "text-base-content/70"}`}
-													>
-														{message.timestamp}
-													</p>
-												</div>
-											</div>
-										))}
-									</div>
-
-									{/* Chat Input */}
-									<div className="p-4 border-t border-base-300 bg-base-100">
-										<div className="flex gap-2">
-											<input
-												type="text"
-												className="input input-bordered flex-1 text-sm h-10"
-												placeholder="Type a message..."
-												value="This is a preview"
-												readonly
-											/>
-                      <button className="btn btn-primary h-10 min-h-0">
-                        <Send size={18}/>
-                      </button>
-										</div>
-									</div>
-								</div>
+					{/* sound toggle */}
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							{soundEnabled
+								? <Volume2 className="size-5 text-primary" />
+								: <VolumeX className="size-5 text-slate-400" />
+							}
+							<div>
+								<p className="text-sm font-medium text-white">
+									Message Sounds
+								</p>
+								<p className="text-xs text-slate-400">
+									Play sounds for new messages
+								</p>
 							</div>
 						</div>
+						<input
+							type="checkbox"
+							className="toggle toggle-primary"
+							checked={soundEnabled}
+							onChange={() => setSoundEnabled(!soundEnabled)}
+						/>
 					</div>
-				</h3>
-			</div>
+
+					{/* volume slider */}
+					{soundEnabled && (
+						<div className="flex items-center gap-3">
+							<VolumeX className="size-4 text-slate-400" />
+							<input
+								type="range"
+								min="0"
+								max="1"
+								step="0.1"
+								value={messageVolume}
+								onChange={(e) => setMessageVolume(Number(e.target.value))}
+								className="range range-primary range-sm flex-1"
+							/>
+							<Volume2 className="size-4 text-slate-400" />
+						</div>
+					)}
+				</div>
+			</section>
+
+			{/* notifications section */}
+			<section className="mb-8">
+				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+					Notifications
+				</h2>
+				<div className="bg-base-200 rounded-xl p-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							{notificationsEnabled
+								? <Bell className="size-5 text-primary" />
+								: <BellOff className="size-5 text-slate-400" />
+							}
+							<div>
+								<p className="text-sm font-medium text-white">
+									Push Notifications
+								</p>
+								<p className="text-xs text-slate-400">
+									Show notifications when app is in background
+								</p>
+							</div>
+						</div>
+						<input
+							type="checkbox"
+							className="toggle toggle-primary"
+							checked={notificationsEnabled}
+							onChange={handleNotificationToggle}
+						/>
+					</div>
+				</div>
+			</section>
+
+			{/* profile preview */}
+			<section className="pb-8">
+				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+					Profile Preview
+				</h2>
+				<div className="bg-base-200 rounded-xl p-4 flex items-center gap-4">
+					<img
+						src={authUser?.profilePicture || Avatar}
+						className="size-14 rounded-full object-cover border-2 border-primary"
+					/>
+					<div>
+						<p className="text-white font-semibold">{authUser?.fullName}</p>
+						<p className="text-slate-400 text-sm">@{authUser?.userName}</p>
+						<p className="text-slate-500 text-xs">{authUser?.email}</p>
+					</div>
+				</div>
+			</section>
 		</div>
 	);
 };

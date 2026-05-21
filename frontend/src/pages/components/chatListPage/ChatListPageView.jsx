@@ -1,7 +1,7 @@
 import { MessagesSquareIcon, PlusIcon, SearchIcon, Users } from "lucide-react";
 import Avatar from "../../../assets/default-avatar.png";
 
-import { getChatName, isUserOnline } from "../../../lib/utils.js";
+import { formatLastSeen, getChatName, isUserOnline } from "../../../lib/utils.js";
 
 import ChatListPageSkeleton from "../../skeletons/ChatListPageSkeleton.jsx";
 import { useAuthStore } from "../../../store/useAuthStore.js";
@@ -9,7 +9,7 @@ import { useChatStore } from "../../../store/useChatStore.js";
 
 const ChatListPageView = (props) => {
   const { handleConversationClick, handleChangeTabs } = props;
-  const { onlineUsers, authUser } = useAuthStore()
+  const { onlineUsers, authUser, lastSeenMap } = useAuthStore()
   const {
     isUsersLoading,
     selectedChat,
@@ -24,7 +24,7 @@ const ChatListPageView = (props) => {
   const getChatPic = (chat) => {
     const newChat = chat.isGroupChat ? chat : chat.users.find((u) => u._id !== authUser._id);
 
-    return newChat.profilePicture;
+    return newChat?.profilePicture;
   }
 
   const getLatestMessage = (user) => {
@@ -141,14 +141,28 @@ const ChatListPageView = (props) => {
           {/* Chat Info */}
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex justify-between items-baseline mb-0.5">
-              <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
-                {getChatName(user, authUser) || "User"}
-              </p>
-              {user._id && unreadCounts[user._id.toString()] > 0 && (
-                <span className="ml-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-bold rounded-full">
-                  {unreadCounts[user._id.toString()] > 99 ? "99+" : unreadCounts[user._id.toString()]}
-                </span>
-              )}
+              <div className="flex gap-3">
+                <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
+                  {getChatName(user, authUser) || "User"}
+                </p>
+                {user._id && unreadCounts[user._id.toString()] > 0 && (
+                  <span className="ml-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-bold rounded-full">
+                    {unreadCounts[user._id.toString()] > 99 ? "99+" : unreadCounts[user._id.toString()]}
+                  </span>
+                )}
+              </div>
+              {/* last seen for DMs only */}
+              {!user.isGroupChat && (() => {
+                const otherUser = user.users?.find((u) => u._id !== authUser._id);
+                const isOnline = onlineUsers.includes(otherUser?._id);
+                const lastSeen = lastSeenMap[otherUser?._id] || otherUser?.lastSeen;
+
+                return (
+                  <p className={`text-xs ${isOnline ? "text-green-600" : "text-slate-500"}`}>
+                    {!isOnline && lastSeen && `Last seen ${formatLastSeen(lastSeen)}`}
+                  </p>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm text-slate-400 truncate">{getLatestMessage(user)}</p>

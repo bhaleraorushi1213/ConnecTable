@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useChatStore } from "../../../store/useChatStore.js";
 
 import ChatContainerView from "./ChatContainerView.jsx";
+import { useCallback } from "react";
 
 const ChatContainer = () => {
   const {
@@ -14,13 +15,18 @@ const ChatContainer = () => {
     subscribeToTyping,
     unsubscribeFromTyping,
     isTyping,
+    hasMoreMessages,
+    isLoadingMoreMessages,
+    loadMoreMessages,
   } = useChatStore();
 
   const messageEndRef = useRef(null);
+  // const messageTopRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     if (!selectedChat) return;
-    
+
     getMessages(selectedChat._id);
 
     subscribeToMessages(selectedChat);
@@ -38,10 +44,38 @@ const ChatContainer = () => {
     }
   }, [messages, isTyping])
 
-  
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // load more when scrolled near the top
+    if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMoreMessages) {
+      // save current scroll height before loading
+      const prevScrollHeight = container.scrollHeight;
+
+      loadMoreMessages().then(() => {
+        // restore scroll position after new messages prepended
+        requestAnimationFrame(() => {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop = newScrollHeight - prevScrollHeight;
+        });
+      });
+    }
+  }, [hasMoreMessages, isLoadingMoreMessages, loadMoreMessages, scrollContainerRef]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
 
   return (
-    <ChatContainerView messageEndRef={messageEndRef} />
+    <ChatContainerView
+      messageEndRef={messageEndRef}
+      scrollContainerRef={scrollContainerRef}
+    />
   )
 }
 

@@ -12,6 +12,7 @@ import cloudinary from "../lib/cloudinary.js";
 //@access          Protected
 export const getAllMessages = async (req, res) => {
 	const { chatId } = req.params;
+	const { page = 1, limit = 30 } = req.query;
 	const userId = req.user._id;
 
 	try {
@@ -33,6 +34,9 @@ export const getAllMessages = async (req, res) => {
 			return res.status(403).json({ message: "You are not a member of this chat" });
 		}
 
+		const total = await Message.countDocuments({ chat: chatId });
+		const totalPages = Math.ceil(total / limit);
+
 		const messages = await Message.find({ chat: chatId })
 			.populate("senderId", "fullName profilePicture email")
 			.populate({
@@ -41,7 +45,17 @@ export const getAllMessages = async (req, res) => {
 					path: "users",
 					select: "fullName profilePicture email",
 				},
-			});
+			})
+			.populate({
+				path: "replyTo",
+				populate: {
+					path: "senderId",
+					select: "fullName profilePicture",
+				},
+			})
+			.sort({ createdAt: -1 })
+			.skip((page - 1) * limit)
+			.limit(Number(limit));
 
 		await Message.updateMany(
 			{
@@ -51,7 +65,17 @@ export const getAllMessages = async (req, res) => {
 			},
 			{ $addToSet: { readBy: userId } }
 		);
-		res.status(200).json(messages);
+
+		res.status(200).json({
+			messages: messages.reverse(), // return oldest first
+			pagination: {
+				page: Number(page),
+				limit: Number(limit),
+				total,
+				totalPages,
+				hasMore: page < totalPages,
+			},
+		});
 	} catch (error) {
 		console.log("Error in getAllMessages controller", error.message);
 		res.status(500).json({ message: "Internal server error" });
@@ -63,7 +87,7 @@ export const getAllMessages = async (req, res) => {
 //@access          Protected
 export const sendMessage = async (req, res) => {
 	try {
-		const { text, image, replyTo } = req.body;
+		const { text, image, replyTo, isForward } = req.body;
 		const { chatId } = req.params;
 		const senderId = req.user._id;
 
@@ -101,6 +125,7 @@ export const sendMessage = async (req, res) => {
 			image: imageUrl,
 			readBy: [senderId],
 			replyTo: replyTo || null,
+			isForward: isForward || false
 		});
 
 		const fullMessage = await Message.findById(newMessage._id)
@@ -122,10 +147,15 @@ export const sendMessage = async (req, res) => {
 			const memberSocketId = getReceiverSocketId(memberId.toString());
 
 			if (memberSocketId) {
-				io.to(memberSocketId).emit("newMessage", fullMessage);
+				io.to(memberSocketId).emit("newMessage", fullMessage); // for chat view (messages array)
+				io.to(memberSocketId).emit("newMessage:global", fullMessage); // for list view (badges + latest message)
 			}
 		});
 
+		const senderSocketId = getReceiverSocketId(senderId.toString());
+		if (senderSocketId) {
+			io.to(senderSocketId).emit("newMessage:global", fullMessage);
+		}
 		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);
@@ -178,6 +208,46 @@ export const deleteMessage = async (req, res) => {
 		res.status(200).json({ message: "Message deleted" });
 	} catch (error) {
 		console.log("Error in deleteMessage controller", error.message);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+// @desc    Search messages in a chat
+// @route   GET /api/messages/search/:chatId
+// @access  Protected
+export const searchMessages = async (req, res) => {
+	const { chatId } = req.params;
+	const { query } = req.query;
+	const userId = req.user._id;
+
+	try {
+		if (!query?.trim()) {
+			return res.status(400).json({ message: "Search query is required" });
+		}
+
+		const chat = await Chat.findById(chatId);
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
+
+		const isMember = chat.users.some(
+			(u) => u.toString() === userId.toString()
+		);
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
+
+		const messages = await Message.find({
+			chat: chatId,
+			text: { $regex: query, $options: "i" },
+		})
+			.populate("senderId", "fullName profilePicture email")
+			.sort({ createdAt: -1 })
+			.limit(20);
+
+		res.status(200).json(messages);
+	} catch (error) {
+		console.log("Error in searchMessages controller", error.message);
 		res.status(500).json({ message: "Internal server error" });
 	}
 };

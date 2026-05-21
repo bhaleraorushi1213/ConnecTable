@@ -1,7 +1,9 @@
 import { generateToken } from "../lib/utils.js";
-import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "../lib/cloudinary.js";
+import User from "../models/user.model.js";
+import Chat from "../models/chat.model.js";
+import Message from "../models/message.model.js";
 
 //@description     Get or Search all users
 //@route           GET /api/user?search=
@@ -77,7 +79,7 @@ export const signup = async (req, res) => {
         profilePicture: newUser.profilePicture
       });
     } else {
-      return res.status(400).json({message: "Invalid user data"});
+      return res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
     console.log("Error in signup controller", error.message);
@@ -137,21 +139,46 @@ export const logout = (req, res) => {
 //@route           POST /api/auth/update-profile
 //@access          Protected
 export const updateProfile = async (req, res) => {
+  const { fullName, userName, profilePicture, bio } = req.body;
+  const userId = req.user._id;
   try {
-    const { profilePicture } = req.body;
-    const userId = req.user._id;
+    const updates = {};
 
-    if (!profilePicture) {
-      return res.status(400).json({ message: "Profile picture is required" });
+    if (fullName) updates.fullName = fullName;
+    if (bio !== undefined) updates.bio = bio;
+
+    // check username uniqueness
+    if (userName) {
+      const existingUser = await User.findOne({
+        userName,
+        _id: { $ne: userId },
+      });
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+      updates.userName = userName;
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+    // upload new profile picture
+    if (profilePicture) {
+      const uploadResponse = await cloudinary.uploader.upload(profilePicture, {
+        folder: "profile_pictures",
+        transformation: [
+          { width: 400, height: 400, crop: "fill", gravity: "face" },
+        ],
+      });
+      updates.profilePicturePublicId = uploadResponse.public_id;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No fields provided to update" });
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePicture: uploadResponse.secure_url },
-      { returnDocument: 'after' }
-    );
+      { $set: updates },
+      { returnDocument: "after", runValidators: true }
+    ).select("-password");
 
     res.status(200).json(updatedUser);
 
@@ -169,6 +196,60 @@ export const checkAuth = (req, res) => {
     res.status(200).json(req.user);
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// @desc    Get user last seen
+// @route   GET /api/auth/lastSeen/:userId
+// @access  Protected
+export const getLastSeen = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).select("lastSeen isOnline");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ lastSeen: user.lastSeen, isOnline: user.isOnline });
+  } catch (error) {
+    console.log("Error in getLastSeen controller", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// @desc    Delete user account
+// @route   DELETE /api/auth/delete-account
+// @access  Protected
+export const deleteAccount = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    // delete all messages sent by user
+    await Message.deleteMany({ senderId: userId });
+
+    // remove user from all chats
+    await Chat.updateMany(
+      { users: userId },
+      { $pull: { users: userId } }
+    );
+
+    // delete empty chats
+    await Chat.deleteMany({ users: { $size: 0 } });
+
+    // delete profile picture from cloudinary
+    const user = await User.findById(userId);
+    if (user?.profilePicturePublicId) {
+        await cloudinary.uploader.destroy(user.profilePicturePublicId);
+    }
+
+    // delete user
+    await User.findByIdAndDelete(userId);
+
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteAccount controller", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

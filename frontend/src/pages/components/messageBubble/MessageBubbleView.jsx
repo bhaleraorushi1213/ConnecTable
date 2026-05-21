@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
-import { useChatStore } from "../../../store/useChatStore"
+import { useChatStore } from "../../../store/useChatStore.js"
 import { useAuthStore } from "../../../store/useAuthStore.js";
 
-import { Reply, Smile, Trash2 } from "lucide-react";
+import { Forward, Reply, Smile, Trash2 } from "lucide-react";
 
 import { formatMessageTime } from "../../../lib/utils.js";
 import { ReactionPicker } from "../reactionPicker/ReactionPicker.jsx";
+import ForwardMessageModal from "../../modals/forwardMessageModal/ForwardMessageModal.jsx";
 
 const MessageBubbleView = (props) => {
   const {
@@ -15,9 +16,12 @@ const MessageBubbleView = (props) => {
     showPicker,
     setShowPicker,
     isMenuOpen,
-    setIsMenuOpen
+    setIsMenuOpen,
+    showForward,
+    setShowForward
   } = props;
-  const { reactToMessage, selectedChat, deleteMessage, setReplyingTo } = useChatStore();
+
+  const { reactToMessage, selectedChat, deleteMessage, setReplyingTo, setForwardingMessage } = useChatStore();
   const { authUser } = useAuthStore();
 
   const menuRef = useRef(null);
@@ -127,7 +131,7 @@ const MessageBubbleView = (props) => {
         {/* reply button */}
         <button
           onClick={() => setReplyingTo(message)}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors"
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="Reply"
         >
           <Reply className="size-3.5" />
         </button>
@@ -135,16 +139,26 @@ const MessageBubbleView = (props) => {
         {/* reaction button */}
         <button
           onClick={() => setShowPicker((p) => !p)}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors"
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="React"
         >
           <Smile className="size-3.5" />
+        </button>
+
+        <button
+          onClick={() => {
+            setForwardingMessage(message);
+            setShowForward(true);
+          }}
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="Forward"
+        >
+          <Forward className="size-3.5" />
         </button>
 
         {/* delete button - own messages only */}
         {isOwnMessage && (
           <button
             onClick={() => deleteMessage(message._id)}
-            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 border border-slate-600 transition-colors"
+            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 border border-slate-600 transition-colors tooltip" data-tip="Delete"
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -187,7 +201,6 @@ const MessageBubbleView = (props) => {
 
   return (
     <div
-      key={`message-${message._id}`}
       id={`message-${message._id}`}
       className={`relative my-2 p-2 chat ${isOwnMessage ? "chat-end flex flex-col" : "chat-start"}`}
     >
@@ -212,7 +225,9 @@ const MessageBubbleView = (props) => {
       </div>
 
       {renderMessageReactions()}
-
+      {showForward && (
+        <ForwardMessageModal onClose={() => setShowForward(false)} />
+      )}
     </div>
   )
 };
