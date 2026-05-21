@@ -51,6 +51,7 @@ const AddMemberModal = (props) => {
                 >
                   <img
                     src={user.profilePicture || Avatar}
+                    alt={user?.fullName}
                     className="size-4 rounded-full object-cover"
                   />
                   <span>{user.fullName}</span>

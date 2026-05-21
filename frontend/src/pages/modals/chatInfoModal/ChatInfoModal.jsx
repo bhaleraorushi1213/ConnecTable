@@ -27,6 +27,7 @@ const ChatInfoModal = ({ onClose }) => {
       await removeFromGroup(selectedChat._id, userId);
     } catch (error) {
       console.log("Error removing member", error);
+      toast.error("Failed to remove member");
     }
   };
 
@@ -54,10 +55,8 @@ const ChatInfoModal = ({ onClose }) => {
 
     const reader = new FileReader();
 
-    reader.readAsDataURL(file);
-    setIsUpdating(true);
-
     reader.onload = async () => {
+      setIsUpdating(true);
       const base64Image = reader.result;
       setSelectedImg(base64Image);
       try {
@@ -72,8 +71,13 @@ const ChatInfoModal = ({ onClose }) => {
       } finally {
         setIsUpdating(false);
       }
+    };
 
-    }
+    reader.onerror = () => {
+      toast.error("Failed to read image file");
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (

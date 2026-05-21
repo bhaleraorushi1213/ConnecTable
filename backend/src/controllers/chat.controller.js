@@ -153,8 +153,7 @@ export const updateGroupChat = async (req, res) => {
       { returnDocument: 'after', runValidators: true }
     )
       .populate("users", "-password")
-      .populate("groupAdmin", "profilePicture" , "-password");
-
+      .populate("groupAdmin", "-password");
     if (!updatedChat) {
       return res.status(404).json({ message: "Chat not found" });
     }
@@ -177,7 +176,7 @@ export const updateGroupChat = async (req, res) => {
 // @desc    Add user to Group / Leave
 // @route   PUT /api/chat/group/add
 // @access  Protected
-export const addMemeberToGroup = async (req, res) => {
+export const addMemberToGroup = async (req, res) => {
   const { chatId, userId } = req.body;
 
   try {

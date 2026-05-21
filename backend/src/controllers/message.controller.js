@@ -268,6 +268,20 @@ export const reactToMessage = async (req, res) => {
 		if (!message) {
 			return res.status(404).json({ message: "Message not found" });
 		}
+		const chat = await Chat.findById(message.chat);
+
+		if (!chat) {
+			return res.status(404).json({ message: "Chat not found" });
+		}
+		
+		const isMember = chat.users.some((u) => u.toString() === userId.toString());
+		if (!isMember) {
+			return res.status(403).json({ message: "You are not a member of this chat" });
+		}
+
+		if (!emoji) {
+			return res.status(400).json({ message: "Emoji is required" });
+		}
 
 		const existingReaction = message.reactions.find(
 			(r) => r.userId.toString() === userId.toString()

@@ -102,8 +102,7 @@ const ProfilePage = () => {
 										<UserCircle className="w-4 h-4" />
 										<span>Username</span>
 									</div>
-									<button className="hover:text-slate-300 tooltip too" data-tip="Edit">
-										<Pencil className="size-4" />
+									<button className="hover:text-slate-300 tooltip" data-tip="Edit">										<Pencil className="size-4" />
 									</button>
 								</div>
 								<input

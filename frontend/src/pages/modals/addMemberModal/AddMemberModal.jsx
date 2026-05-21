@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useChatStore } from '../../../store/useChatStore.js';
 import { useAuthStore } from '../../../store/useAuthStore.js';
 import AddMemberModalView from './AddMemberModalView.jsx'
+import toast from 'react-hot-toast';
 
 const AddMemberModal = ({ onClose }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,10 +40,13 @@ const AddMemberModal = ({ onClose }) => {
     if (!selectedUsers.length) return;
     setIsAdding(true);
     try {
-      for (const userId of selectedUsers) {
-        await addMemberToGroup(selectedChat._id, userId);
-      }
+      await Promise.all(
+       selectedUsers.map(userId => addMemberToGroup(selectedChat._id, userId))
+     );
       onClose();
+    } catch (error) {
+     console.error("Error adding members", error);
+     toast.error("Failed to add some members");
     } finally {
       setIsAdding(false);
     }

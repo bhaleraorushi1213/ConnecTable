@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../../../store/useChatStore"
 import { useAuthStore } from "../../../store/useAuthStore.js";
 
@@ -7,9 +8,29 @@ import { formatMessageTime } from "../../../lib/utils.js";
 import { ReactionPicker } from "../reactionPicker/ReactionPicker.jsx";
 
 const MessageBubbleView = (props) => {
-  const { message, isOwnMessage, senderPic, showPicker, setShowPicker, isMenuOpen, setIsMenuOpen } = props;
+  const { message, isOwnMessage, senderPic, showPicker, setShowPicker, isMenuOpen, setIsMenuOpen, onEdit } = props;
   const { reactToMessage, selectedChat, deleteMessage } = useChatStore();
   const { authUser } = useAuthStore();
+
+  const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleDocumentClick = (e) => {
+      const target = e.target;
+      if (
+        menuRef.current && triggerRef.current &&
+        !menuRef.current.contains(target) && !triggerRef.current.contains(target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleDocumentClick);
+    return () => document.removeEventListener("click", handleDocumentClick);
+  }, [isMenuOpen, setIsMenuOpen]);
 
   const groupedReactions = message.reactions?.reduce((acc, r) => {
     acc[r.emoji] = (acc[r.emoji] || 0) + 1;
@@ -69,22 +90,25 @@ const MessageBubbleView = (props) => {
         )}
 
         {isOwnMessage && (
-          <button onClick={() => setIsMenuOpen((prev) => !prev)} className={`absolute -top-1 -left-6 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity rounded-full flex items-center justify-center hover:bg-slate-900 size-6 text-slate-200`}>
+          <button ref={triggerRef} onClick={() => setIsMenuOpen((prev) => !prev)} className={`absolute -top-1 -left-6 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity rounded-full flex items-center justify-center hover:bg-slate-900 size-6 text-slate-200`}>
             <EllipsisVertical className="size-4" />
           </button>
 
         )}
 
         {isMenuOpen && (
-          <div className="flex flex-col absolute top-1 -left-20 rounded-lg bg-base-300">
+          <div ref={menuRef} className="flex flex-col absolute top-1 -left-20 rounded-lg bg-base-300">
             <button
-              onClick={() => deleteMessage(message._id)}
-              className="text-red-800 text-xs border-b border-slate-600 p-2"
+              onClick={() => {
+                deleteMessage(message._id);
+                setIsMenuOpen(false);
+              }}
+              className="text-red-800 text-xs border-b border-slate-600 p-2 hover:bg-slate-800/80"
             >
               Delete
             </button>
-            <button className="text-slate-200 text-xs border-b border-slate-600 p-2">Copy</button>
-            <button className="text-slate-200 text-xs p-2">Edit</button>
+            <button onClick={() => setIsMenuOpen(false)} className="text-slate-200 text-xs border-b border-slate-600 p-2 hover:bg-slate-800/80">Copy</button>
+            <button onClick={() => setIsMenuOpen(false)} className="text-slate-200 text-xs p-2 hover:bg-slate-800/80">Edit</button>
           </div>
         )}
         {groupedReactions && Object.keys(groupedReactions).length > 0 && (

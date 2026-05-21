@@ -22,7 +22,7 @@ const ChatListPageView = (props) => {
   const filteredUsers = getFilteredUsers();
 
   const getChatPic = (chat) => {
-    const newChat = chat.isGroupChat ? chat : chat.users.filter((u) => u._id !== authUser._id);
+    const newChat = chat.isGroupChat ? chat : chat.users.find((u) => u._id !== authUser._id);
 
     return newChat.profilePicture;
   }
