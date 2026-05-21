@@ -1,5 +1,5 @@
-import NewChatList from './components/newChatList/NewChatList';
-import NewGroupScreen from './components/newGroupScreen/NewGroupScreen';
+import NewChatList from '../components/newChatList/NewChatList';
+import NewGroupScreen from '../components/newGroupScreen/NewGroupScreen';
 
 const NewChatModalView = (props) => {
   const { handleBack, view, setView } = props;

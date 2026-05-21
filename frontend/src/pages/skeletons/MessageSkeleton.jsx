@@ -1,10 +1,10 @@
 
 
 const MessageSkeleton = () => {
-  const skeletonMessages = Array(6).fill(null);
+  const skeletonMessages = Array(5).fill(null);
 
   return (
-    <div className="felx-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 flex flex-col py-4 px-4">
       {skeletonMessages.map((_, idx) => (
         <div key={idx} className={`chat ${idx % 2 === 0 ? "chat-start" : "chat-end"}`}>
           <div className="chat-image avatar">
@@ -18,7 +18,7 @@ const MessageSkeleton = () => {
           </div>
 
           <div className="chat-bubble bg-transparent p-0">
-            <div className="skeleton h-14 w-40 md:h-16 md:w-[200px]"/>
+            <div className="skeleton h-14 w-40 md:h-16 md:w-[200px]" />
           </div>
         </div>
       ))}

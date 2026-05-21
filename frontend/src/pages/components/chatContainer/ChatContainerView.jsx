@@ -1,11 +1,12 @@
 import { useAuthStore } from "../../../store/useAuthStore.js";
 import { useChatStore } from "../../../store/useChatStore.js";
-import { formatMessageTime } from "../../../lib/utils.js";
 
 import ChatHeader from "../chatHeader/ChatHeader.jsx";
 import MessageInput from "../messageInput/MessageInput.jsx";
 import MessageSkeleton from "../../skeletons/MessageSkeleton.jsx"
+import MessageBubble from "../messageBubble/MessageBubble.jsx"
 import Avatar from "../../../assets/default-avatar.png";
+import { formatDateSeparator, isSameDay } from "../../../lib/utils.js";
 
 const ChatContainerView = (props) => {
   const { messageEndRef } = props;
@@ -15,7 +16,7 @@ const ChatContainerView = (props) => {
 
   if (isMessagesLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-auto">
+      <div className="flex-1 flex flex-col overflow-auto relative">
         <ChatHeader />
         <MessageSkeleton />
         <MessageInput />
@@ -26,53 +27,40 @@ const ChatContainerView = (props) => {
   const renderMessages = () => {
     return (
       <div className="flex-1 flex flex-col overflow-auto px-4">
-        {messages.map((message) => {
+        {messages.map((message, idx) => {
+
+          const prevMessage = messages[idx - 1];
+
+          const showDateSeparator =
+            !prevMessage ||
+            !isSameDay(prevMessage.createdAt, message.createdAt);
 
           const isOwnMessage =
             typeof message.senderId === "object"
               ? message.senderId._id === authUser._id
               : message.senderId === authUser._id;
 
+          const senderPic = isOwnMessage
+            ? authUser.profilePicture || Avatar
+            : selectedChat.isGroupChat
+              ? message.senderId?.profilePicture || Avatar
+              : selectedChat.profilePicture || Avatar;
+
           return (
-            <div
-              key={message._id}
-              className={`my-4 chat ${isOwnMessage ? "chat-end" : "chat-start"}`}
-            >
-              <div className="chat-image avatar">
-                <div className="size-10 rounded-full border">
-                  <img
-                    src={isOwnMessage ? authUser.profilePicture || Avatar : selectedChat.profilePicture || Avatar}
-                    alt="profile picture" />
+            <div key={message._id}>
+              {showDateSeparator && (
+                <div className="flex items-center gap-3 py-4">
+                  <div className="flex-1 bg-slate-700" />
+                  <span className="text-xs text-slate-500 bg-base-100 shrink-0 border border-slate-700 my-2 rounded-full px-2 py-1.5">
+                    {formatDateSeparator(message.createdAt)}
+                  </span>
+                  <div className="flex-1 bg-slate-700" />
                 </div>
-              </div>
-              <div className="chat-header mb-1">
-                <time className="text-xs text-slate-300 opacity-70 ml-1">
-                  {formatMessageTime(message.createdAt)}
-                </time>
-              </div>
-              <div className="chat-bubble flex flex-col text-slate-100 p-1.5">
-                {message.image && (
-                  <img
-                    src={message.image}
-                    alt="Attachment"
-                    className="sm:max-w-[200px] rounded-md mb-2 object-cover"
-                  />
-                )}
-                {message.text && <p className="px-2">{message.text}</p>}
-              </div>
+              )}
+              <MessageBubble senderPic={senderPic} message={message} isOwnMessage={isOwnMessage} />
             </div>
           )
         })}
-        {isTyping && (
-          <div className="flex items-center gap-2 px-4 py-2 text-sm text-slate-400">
-            <div className="flex gap-1">
-              <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
-            </div>
-            <span>typing...</span>
-          </div>
-        )}
         <div ref={messageEndRef} />
       </div>
     )
@@ -83,12 +71,22 @@ const ChatContainerView = (props) => {
       className={`
         flex-col relative bg-base-100 overflow-hidden h-full flex-1
         ${mobileView === "chat" && selectedChat?._id ? "flex" : "hidden md:flex"}
-      `}
-    >
+      `}>
 
       <ChatHeader />
-
       {renderMessages()}
+
+      {isTyping && (
+        <div className="flex items-center gap-2 px-4 py-2 text-sm text-slate-400">
+          <div className="flex gap-1">
+            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
+            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
+            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
+          </div>
+          <span>typing...</span>
+        </div>
+      )}
+
 
       <MessageInput />
     </main>

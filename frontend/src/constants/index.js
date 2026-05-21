@@ -33,10 +33,11 @@ export const THEMES = [
 	"sunset",
 ];
 
-
 export const SOCKET_EVENTS = {
   TYPING: "typing",
   STOP_TYPING: "stopedTyping",
   NEW_MESSAGE: "newMessage",
   GET_ONLINE_USERS: "getOnlineUsers",
 };
+
+export const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];

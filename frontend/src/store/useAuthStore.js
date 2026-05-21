@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+import { useChatStore } from "./useChatStore.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
@@ -13,11 +14,11 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   isSearchLoading: false,
   socket: null,
-  users:[],
+  users: [],
   onlineUsers: [],
 
   setIsSearchLoading: (value) => set({ isSearchLoading: value }),
-  
+
   setUsers: (value) => set({ users: value }),
 
   checkAuth: async () => {
@@ -36,6 +37,7 @@ export const useAuthStore = create((set, get) => ({
 
   signup: async (data) => {
     set({ isSigningUp: true });
+    const { setSelectedChat } = useChatStore.getState();
 
     try {
       const res = await axiosInstance.post("/auth/signup", data);
@@ -46,7 +48,12 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
-      set({ isSigningUp: false });
+      set({
+        isSigningUp: false,
+        authUser: null,
+        users: [],
+      });
+      setSelectedChat(null)
     }
   },
 
@@ -80,14 +87,14 @@ export const useAuthStore = create((set, get) => ({
   },
 
   searchUser: async (search) => {
-    set({isSearchLoading: true})
+    set({ isSearchLoading: true })
     try {
-      const res = await axiosInstance.get(`/auth/user?search=${search}`);      set({ users: res.data });
+      const res = await axiosInstance.get(`/auth/user?search=${search}`); set({ users: res.data });
     } catch (error) {
       console.log("Error in searchUser", error);
       toast.error("Failed to search users. Please try again.");
     } finally {
-      set({isSearchLoading: false})
+      set({ isSearchLoading: false })
     }
   },
 
