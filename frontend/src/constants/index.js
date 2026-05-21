@@ -35,7 +35,7 @@ export const THEMES = [
 
 export const SOCKET_EVENTS = {
   TYPING: "typing",
-  STOP_TYPING: "stopedTyping",
+  STOP_TYPING: "stopTyping",
   NEW_MESSAGE: "newMessage",
   GET_ONLINE_USERS: "getOnlineUsers",
 };

@@ -34,6 +34,10 @@ const messageSchema = new mongoose.Schema(
       ref: "Message",
       default: null,
     },
+    isForwar: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );
