@@ -1,15 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useChatStore } from "../../../store/useChatStore"
 import { useAuthStore } from "../../../store/useAuthStore.js";
 
-import { EllipsisVertical } from "lucide-react";
+import { Reply, Smile, Trash2 } from "lucide-react";
 
 import { formatMessageTime } from "../../../lib/utils.js";
 import { ReactionPicker } from "../reactionPicker/ReactionPicker.jsx";
 
 const MessageBubbleView = (props) => {
-  const { message, isOwnMessage, senderPic, showPicker, setShowPicker, isMenuOpen, setIsMenuOpen, onEdit } = props;
-  const { reactToMessage, selectedChat, deleteMessage } = useChatStore();
+  const {
+    message,
+    isOwnMessage,
+    senderPic,
+    showPicker,
+    setShowPicker,
+    isMenuOpen,
+    setIsMenuOpen
+  } = props;
+  const { reactToMessage, selectedChat, deleteMessage, setReplyingTo } = useChatStore();
   const { authUser } = useAuthStore();
 
   const menuRef = useRef(null);
@@ -32,20 +40,36 @@ const MessageBubbleView = (props) => {
     return () => document.removeEventListener("click", handleDocumentClick);
   }, [isMenuOpen, setIsMenuOpen]);
 
-  const groupedReactions = message.reactions?.reduce((acc, r) => {
-    acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-    return acc;
-  }, {});
+  const scrollToMessage = (messageId) => {
+    const el = document.getElementById(`message-${messageId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  const myReaction = message.reactions?.find(
-    (r) => r.userId?._id === authUser._id || r.userId === authUser._id
-  );
+      el.classList.add("bg-primary/10");
+      setTimeout(() => el.classList.remove("bg-primary/10"), 1500);
+    }
+  };
 
-  return (
-    <div
-      key={message._id}
-      className={`my-2 chat ${isOwnMessage ? "chat-end" : "chat-start"}`}
-    >
+  const replyPreview = (replyTo) => {
+    if (!replyTo) return null;
+
+    return (
+      <div className="mb-1.5 px-2 py-1.5 bg-slate-700/60 rounded-lg border-l-4 border-green-800 max-w-[200px]">
+        <p className="text-xs text-slate-100 font-semibold truncate">
+          {replyTo.senderId?.fullName || "Unknown"}
+        </p>
+        {replyTo.image && !replyTo.text && (
+          <p className="text-xs text-slate-100">📷 Image</p>
+        )}
+        {replyTo.text && (
+          <p className="text-xs text-slate-100 truncate">{replyTo.text}</p>
+        )}
+      </div>
+    );
+  };
+
+  const renderAvatar = () => {
+    return (
       <div className="chat-image avatar">
         <div className="size-10 rounded-full border">
           <img
@@ -53,7 +77,11 @@ const MessageBubbleView = (props) => {
             alt="profile picture" />
         </div>
       </div>
+    )
+  };
 
+  const renderMessageTime = () => {
+    return (
       <div className=" chat-header mb-1 flex items-center gap-2">
         {selectedChat.isGroupChat && !isOwnMessage && (
           <span className="text-xs font-semibold text-primary">
@@ -64,23 +92,116 @@ const MessageBubbleView = (props) => {
           {formatMessageTime(message.createdAt)}
         </time>
       </div>
+    )
+  }
+
+  const renderChatBubble = () => {
+    return (
+      <div className={`rounded-xl max-w-[250px] md:max-w-[400px] flex flex-col text-slate-100 p-1.5 flex-wrap ${isOwnMessage ? "bg-primary rounded-tr-none" : "bg-slate-700 rounded-tl-none"}`}>
+        {/* reply preview - clickable to scroll */}
+        {message.replyTo && (
+          <button
+            onClick={() => scrollToMessage(message.replyTo._id)}
+            className="text-left"
+          >
+            {replyPreview(message.replyTo)}
+          </button>
+        )}
+
+        {message.image && (
+          <img
+            src={message.image}
+            className="sm:max-w-[200px] rounded-md mb-2 object-cover"
+          />
+        )}
+        {message.text && <p className="px-2 break-all whitespace-pre-wrap">{message.text}</p>}
+      </div>
+    )
+  };
+
+  const renderActionButtons = () => {
+    return (
+      <div className={`absolute -top-3 ${isOwnMessage ? "right-full mr-1" : "left-full ml-1"} 
+          opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1`}
+      >
+        {/* reply button */}
+        <button
+          onClick={() => setReplyingTo(message)}
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors"
+        >
+          <Reply className="size-3.5" />
+        </button>
+
+        {/* reaction button */}
+        <button
+          onClick={() => setShowPicker((p) => !p)}
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors"
+        >
+          <Smile className="size-3.5" />
+        </button>
+
+        {/* delete button - own messages only */}
+        {isOwnMessage && (
+          <button
+            onClick={() => deleteMessage(message._id)}
+            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 border border-slate-600 transition-colors"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        )}
+      </div>
+    )
+  };
+
+  const renderMessageReactions = () => {
+
+    return message.reactions?.length > 0 && (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {Object.entries(
+          message.reactions.reduce((acc, r) => {
+            acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+            return acc;
+          }, {})
+        ).map(([emoji, count]) => {
+          const myReaction = message.reactions.find(
+            (r) => r.userId?._id === authUser._id || r.userId === authUser._id
+          );
+          return (
+            <button
+              key={emoji}
+              onClick={() => reactToMessage(message._id, emoji)}
+              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors
+                  ${myReaction?.emoji === emoji
+                  ? "bg-primary/20 border-primary text-primary"
+                  : "bg-base-300 border-slate-600 text-slate-300 hover:border-primary/50"
+                }`}
+            >
+              <span>{emoji}</span>
+              {count > 1 && <span>{count}</span>}
+            </button>
+          );
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      key={`message-${message._id}`}
+      id={`message-${message._id}`}
+      className={`relative my-2 p-2 chat ${isOwnMessage ? "chat-end flex flex-col" : "chat-start"}`}
+    >
+      {!isOwnMessage && renderAvatar()}
+
+      {renderMessageTime()}
+
       <div className="relative group">
 
-        <div className={`chat-bubble flex flex-col text-slate-100 p-1.5 ${isOwnMessage && "bg-cyan-500"}`}>
-          {message.image && (
-            <img
-              src={message.image}
-              alt="Attachment"
-              className="sm:max-w-[200px] rounded-md mb-2 object-cover box"
-            />
-          )}
-          {message.text && <p className="px-2">{message.text}</p>}
-        </div>
-        <button
-          onClick={() => setShowPicker((prev) => !prev)}
-          className={`${isOwnMessage ? "-left-4 -bottom-2 " : "-right-2 -bottom-2 "} absolute ${showPicker ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity size-6 bg-base-300 rounded-full flex items-center justify-center text-xs border border-slate-600 hover:bg-base-200`}>
-          😊
-        </button>
+        {renderChatBubble()}
+
+        {renderActionButtons()}
+
+        {/* reaction picker */}
         {showPicker && (
           <ReactionPicker
             onSelect={(emoji) => reactToMessage(message._id, emoji)}
@@ -88,50 +209,12 @@ const MessageBubbleView = (props) => {
             isOwnMessage={isOwnMessage}
           />
         )}
-
-        {isOwnMessage && (
-          <button ref={triggerRef} onClick={() => setIsMenuOpen((prev) => !prev)} className={`absolute -top-1 -left-6 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity rounded-full flex items-center justify-center hover:bg-slate-900 size-6 text-slate-200`}>
-            <EllipsisVertical className="size-4" />
-          </button>
-
-        )}
-
-        {isMenuOpen && (
-          <div ref={menuRef} className="flex flex-col absolute top-1 -left-20 rounded-lg bg-base-300">
-            <button
-              onClick={() => {
-                deleteMessage(message._id);
-                setIsMenuOpen(false);
-              }}
-              className="text-red-800 text-xs border-b border-slate-600 p-2 hover:bg-slate-800/80"
-            >
-              Delete
-            </button>
-            <button onClick={() => setIsMenuOpen(false)} className="text-slate-200 text-xs border-b border-slate-600 p-2 hover:bg-slate-800/80">Copy</button>
-            <button onClick={() => setIsMenuOpen(false)} className="text-slate-200 text-xs p-2 hover:bg-slate-800/80">Edit</button>
-          </div>
-        )}
-        {groupedReactions && Object.keys(groupedReactions).length > 0 && (
-          <div className="absolute -bottom-7 flex flex-wrap gap-1 mt-1">
-            {Object.entries(groupedReactions).map(([emoji, count]) => (
-              <button
-                key={emoji}
-                onClick={() => reactToMessage(message._id, emoji)}
-                className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors
-                ${myReaction?.emoji === emoji
-                    ? "bg-primary/20 border-primary text-primary"
-                    : "bg-base-300 border-slate-600 text-slate-300 hover:border-primary/50"
-                  }`}
-              >
-                <span>{emoji}</span>
-                {count > 1 && <span>{count}</span>}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {renderMessageReactions()}
+
     </div>
   )
-}
+};
 
 export default MessageBubbleView

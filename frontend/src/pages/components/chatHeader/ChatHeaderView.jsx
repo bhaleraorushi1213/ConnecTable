@@ -21,7 +21,7 @@ const ChatHeaderView = () => {
 
   return (
     <>
-      <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-base-300/90 border-b shadow-sm shrink-0">
+      <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-base-300/90 border-b border-zinc-500 shadow-sm shrink-0">
         <div className="flex items-center gap-3 cursor-pointer">
           <button
             onClick={() => {
