@@ -2,7 +2,7 @@ import { EMOJIS } from "../../../constants";
 
 export const ReactionPicker = ({ onSelect, onClose, isOwnMessage }) => {
   return (
-    <div className={`absolute bottom-full mb-4 ${isOwnMessage ? "right-16" : "left-0"} z-50 flex gap-1 bg-base-300 rounded-full px-2 py-1 shadow-xl border border-slate-700`}>
+    <div className={`absolute bottom-full mb-4 ${isOwnMessage ? "right-16" : "left-0"} z-50 flex gap-1 bg-base-300 rounded-full px-2 py-1 shadow-xl border border-base-300`}>
       {EMOJIS.map((emoji) => (
         <button
           key={emoji}

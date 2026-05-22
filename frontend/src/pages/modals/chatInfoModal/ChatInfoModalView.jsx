@@ -30,12 +30,12 @@ const ChatInfoModalView = (props) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-300">
         <div className="bg-base-200 rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
 
           {/* header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
-            <h2 className="text-white font-bold text-lg">Group Info</h2>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
+            <h2 className="text-base-content font-bold text-lg">Group Info</h2>
             <button onClick={onClose} className="btn btn-ghost btn-circle btn-sm">
               <X className="size-5" />
             </button>
@@ -44,14 +44,14 @@ const ChatInfoModalView = (props) => {
           {/* group avatar and name */}
           <div className="flex flex-col items-center py-6 gap-3">
             <div className="relative">
-              <div className="size-20 rounded-full bg-base-300 flex items-center justify-center border border-zinc-600 overflow-hidden">
+              <div className="size-20 rounded-full bg-base-300 flex items-center justify-center border border-base-300/60 overflow-hidden">
                 {selectedChat?.profilePicture ? (
                   <img
                     src={selectedImg || selectedChat?.profilePicture}
                     className="size-full object-cover"
                   />
                 ) : (
-                  <Users className="size-10 text-zinc-300" />
+                  <Users className="size-10 text-base-300/50" />
                 )}
 
               </div>
@@ -61,7 +61,7 @@ const ChatInfoModalView = (props) => {
                     htmlFor="group-image"
                     className="absolute bottom-0 right-0 size-7 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-colors"
                   >
-                    <Camera className="size-4 text-white" />
+                    <Camera className="size-4 text-base-content" />
                   </label>
                   <input
                     id="group-image"
@@ -75,7 +75,7 @@ const ChatInfoModalView = (props) => {
             </div>
 
             {isUpdating && (
-              <div className="text-xs animate-pulse text-orange-400">
+              <div className="text-xs animate-pulse text-base-content">
                 Uploading please don't close the group info screen
               </div>
 
@@ -88,7 +88,7 @@ const ChatInfoModalView = (props) => {
                   type="text"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  className="input input-sm input-bordered text-center text-white bg-base-300"
+                  className="input input-sm input-bordered text-center text-base-content bg-base-300"
                   autoFocus
                 />
                 <button
@@ -113,26 +113,26 @@ const ChatInfoModalView = (props) => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <h3 className="text-white text-xl font-bold">
+                <h3 className="text-base-content text-xl font-bold">
                   {selectedChat?.chatName}
                 </h3>
                 {isAdmin && (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="text-slate-400 hover:text-primary transition-colors"
+                    className="text-base-content/60 hover:text-primary transition-colors"
                   >
                     <Pencil className="size-4" />
                   </button>
                 )}
               </div>
             )}
-            <p className="text-slate-400 text-sm">
+            <p className="text-base-content/60 text-sm">
               {selectedChat?.users?.length} members
             </p>
           </div>
 
           <div className="flex items-center justify-between px-4 mb-3">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+            <p className="text-base-content/60 text-xs font-bold uppercase tracking-wider">
               Members
             </p>
             {isAdmin && (
@@ -165,10 +165,10 @@ const ChatInfoModalView = (props) => {
                       className="size-10 rounded-full object-cover"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-semibold truncate">
+                      <p className="text-base-content text-sm font-semibold truncate">
                         {isSelf ? "You" : user.fullName}
                       </p>
-                      <p className="text-slate-400 text-xs truncate">
+                      <p className="text-base-content/60 text-xs truncate">
                         {user.email}
                       </p>
                     </div>
@@ -197,7 +197,7 @@ const ChatInfoModalView = (props) => {
           </div>
 
           {/* leave group button */}
-          <div className="px-4 pb-4 border-t border-slate-700 pt-4">
+          <div className="px-4 pb-4 border-t border-base-300 pt-4">
             <button
               onClick={handleLeave}
               disabled={isLoading}

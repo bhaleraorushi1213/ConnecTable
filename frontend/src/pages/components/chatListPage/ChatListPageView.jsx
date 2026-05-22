@@ -37,19 +37,19 @@ const ChatListPageView = (props) => {
 
   const handleTabsClass = (tab) => {
     if (activeTab === tab) {
-      return "flex-1 py-1.5 text-xs font-medium rounded-md bg-primary text-slate-100 shadow-lg shadow-primary/20";
+      return "flex-1 py-1.5 text-xs font-medium rounded-md bg-primary text-base-content shadow-lg shadow-primary/20";
     }
 
-    return "flex-1 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:bg-slate-100 transition-colors";
+    return "flex-1 py-1.5 text-xs font-medium rounded-md text-base-content/60 hover:bg-slate-100 transition-colors";
   };
 
   const renderSearchBar = () => {
     return (
       <div className="px-4 my-4">
-        <div className="flex w-full items-center rounded-lg bg-slate-100 dark:bg-card-dark px-3 py-2">
-          <SearchIcon className="size-5 text-slate-500 mr-2" />
+        <div className="flex w-full items-center rounded-lg bg-slate-100 dark:bg-base-300 px-3 py-2">
+          <SearchIcon className="size-5 text-base-content/40 mr-2" />
           <input
-            className="flex-1 bg-transparent border-none text-sm focus:ring-0 focus:outline-none placeholder:text-slate-500 text-slate-900 p-0"
+            className="flex-1 bg-transparent border-none text-sm focus:ring-0 focus:outline-none placeholder:text-base-content/40 text-slate-900 p-0"
             placeholder="Search conversations..."
             onChange={() => { }}
           />
@@ -60,7 +60,7 @@ const ChatListPageView = (props) => {
 
   const renderTabs = () => {
     return (
-      <div className="flex gap-1 px-4 py-2 border-b border-slate-200 dark:border-slate-800 pb-4">
+      <div className="flex gap-1 px-4 py-2 border-b border-slate-200 dark:border-base-200 pb-4">
         <button
           className={handleTabsClass("all")}
           onClick={() => handleChangeTabs("all")}
@@ -87,13 +87,13 @@ const ChatListPageView = (props) => {
     if (!filteredUsers || !Array.isArray(filteredUsers) || filteredUsers.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full px-6 text-center animate-in fade-in zoom-in duration-300">
-          <div className="size-20 bg-base-100/10 border border-gray-600 rounded-full flex items-center justify-center mb-4 text-slate-400 ">
+          <div className="size-20 bg-base-100/10 border border-gray-600 rounded-full flex items-center justify-center mb-4 text-base-content/60 ">
             <MessagesSquareIcon className="size-12" />
           </div>
-          <h3 className="text-slate-900 dark:text-white font-semibold mb-1">
+          <h3 className="text-slate-900 dark:text-base-content font-semibold mb-1">
             No chats yet
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+          <p className="text-base-content/40 dark:text-base-content/60 text-sm mb-6">
             Press the "+" button to start a new conversation.
           </p>
         </div>
@@ -142,11 +142,11 @@ const ChatListPageView = (props) => {
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex justify-between items-baseline mb-0.5">
               <div className="flex gap-3">
-                <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
+                <p className="text-sm font-semibold truncate text-slate-900 dark:text-base-content">
                   {getChatName(user, authUser) || "User"}
                 </p>
                 {user._id && unreadCounts[user._id.toString()] > 0 && (
-                  <span className="ml-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-primary text-white text-xs font-bold rounded-full">
+                  <span className="ml-2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-primary text-base-content text-xs font-bold rounded-full">
                     {unreadCounts[user._id.toString()] > 99 ? "99+" : unreadCounts[user._id.toString()]}
                   </span>
                 )}
@@ -158,14 +158,14 @@ const ChatListPageView = (props) => {
                 const lastSeen = lastSeenMap[otherUser?._id] || otherUser?.lastSeen;
 
                 return (
-                  <p className={`text-xs ${isOnline ? "text-green-600" : "text-slate-500"}`}>
+                  <p className={`text-xs ${isOnline ? "text-green-600" : "text-base-content/40"}`}>
                     {!isOnline && lastSeen && `Last seen ${formatLastSeen(lastSeen)}`}
                   </p>
                 );
               })()}
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-slate-400 truncate">{getLatestMessage(user)}</p>
+              <p className="text-sm text-base-content/60 truncate">{getLatestMessage(user)}</p>
             </div>
           </div>
         </button>)
@@ -189,7 +189,7 @@ const ChatListPageView = (props) => {
 
       <button
         onClick={() => setIsNewChatModalOpen(true)}
-        className="absolute bottom-6 right-6 size-14 flex items-center justify-center bg-primary hover:bg-primary-hover text-slate-100 rounded-full transition-all active:scale-90 shadow-2xl shadow-primary/40 z-20 group"
+        className="absolute bottom-6 right-6 size-14 flex items-center justify-center bg-primary hover:bg-primary-hover text-base-content rounded-full transition-all active:scale-90 shadow-2xl shadow-primary/40 z-20 group"
       >
         <PlusIcon className="size-8 font-extrabold" />
       </button>

@@ -143,19 +143,38 @@ export const sendMessage = async (req, res) => {
 
 		const chatMembers = chat.users.filter((u) => u.toString() !== senderId.toString());
 
+		let deliveredTo = [];
+
 		chatMembers.forEach((memberId) => {
 			const memberSocketId = getReceiverSocketId(memberId.toString());
 
 			if (memberSocketId) {
 				io.to(memberSocketId).emit("newMessage", fullMessage); // for chat view (messages array)
 				io.to(memberSocketId).emit("newMessage:global", fullMessage); // for list view (badges + latest message)
+				deliveredTo.push(memberId);
 			}
 		});
+
+		if (deliveredTo.length > 0) {
+      await Message.findByIdAndUpdate(newMessage._id, {
+        $addToSet: { deliveredTo: { $each: deliveredTo } },
+      });
+
+      // notify sender of delivery
+      const senderSocketId = getReceiverSocketId(senderId.toString());
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageDelivered", {
+          messageId: newMessage._id,
+          deliveredTo,
+        });
+      }
+    }
 
 		const senderSocketId = getReceiverSocketId(senderId.toString());
 		if (senderSocketId) {
 			io.to(senderSocketId).emit("newMessage:global", fullMessage);
 		}
+		
 		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);

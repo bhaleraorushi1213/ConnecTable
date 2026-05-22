@@ -46,11 +46,11 @@ const ChatContainerView = (props) => {
         {/* end of messages indicator */}
         {!hasMoreMessages && messages.length > 0 && (
           <div className="flex items-center gap-3 py-4">
-            <div className="flex-1 h-px bg-slate-700" />
-            <p className="text-xs text-slate-500 shrink-0">
+            <div className="flex-1 h-px bg-base-content/50" />
+            <p className="text-sm text-base-content/50 shrink-0">
               Beginning of conversation
             </p>
-            <div className="flex-1 h-px bg-slate-700" />
+            <div className="flex-1 h-px bg-base-content/50" />
           </div>
         )}
         {messages.map((message, idx) => {
@@ -75,12 +75,10 @@ const ChatContainerView = (props) => {
           return (
             <div key={message._id}>
               {showDateSeparator && (
-                <div className="flex items-center gap-3 py-4">
-                  <div className="flex-1 bg-slate-700" />
-                  <span className="text-xs text-slate-500 bg-base-100 shrink-0 border border-slate-700 my-2 rounded-full px-2 py-1.5">
+                <div className="flex items-center justify-center gap-3 py-4">
+                  <span className="text-xs text-base-content bg-base-100 shrink-0 border border-base-content my-2 rounded-full px-2 py-1.5">
                     {formatDateSeparator(message.createdAt)}
                   </span>
-                  <div className="flex-1 bg-slate-700" />
                 </div>
               )}
               <MessageBubble senderPic={senderPic} message={message} isOwnMessage={isOwnMessage} />
@@ -104,11 +102,11 @@ const ChatContainerView = (props) => {
       {renderMessages()}
 
       {isTyping && (
-        <div className="flex items-center gap-2 px-4 py-2 text-sm text-slate-400">
+        <div className="flex items-center gap-2 px-4 py-2 text-sm text-base-content/80">
           <div className="flex gap-1">
-            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
-            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
-            <span className="size-2 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
+            <span className="size-2 bg-base-content/80 rounded-full animate-bounce [animation-delay:0ms]" />
+            <span className="size-2 bg-base-content/80 rounded-full animate-bounce [animation-delay:150ms]" />
+            <span className="size-2 bg-base-content/80 rounded-full animate-bounce [animation-delay:300ms]" />
           </div>
           <span>typing...</span>
         </div>

@@ -1,12 +1,12 @@
-import { ArrowLeft, InfoIcon, Search, SearchIcon, Users, X } from "lucide-react";
-
+import { useEffect } from "react";
 import { useChatStore } from "../../../store/useChatStore.js";
 import { useAuthStore } from "../../../store/useAuthStore.js";
+
+import { ArrowLeft, InfoIcon, Search, SearchIcon, Users, X } from "lucide-react";
 import { formatLastSeen, formatMessageTime, getChatName } from "../../../lib/utils.js";
 
-import Avatar from "../../../assets/default-avatar.png";
 import ChatInfoModal from "../../modals/chatInfoModal/ChatInfoModal.jsx";
-import { useEffect } from "react";
+import Avatar from "../../../assets/default-avatar.png";
 
 const ChatHeaderView = () => {
   const {
@@ -61,19 +61,19 @@ const ChatHeaderView = () => {
     return (
       <div className="px-4 py-3">
         <div className="flex items-center gap-2 bg-base-300 rounded-lg px-3 py-2">
-          <Search className="size-4 text-slate-400 shrink-0" />
+          <Search className="size-4 text-base-content/60 shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search messages..."
-            className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+            className="flex-1 bg-transparent text-sm text-base-content placeholder:text-base-content/40 outline-none"
             autoFocus
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="text-slate-400 hover:text-white"
+              className="text-base-content/60 hover:text-base-content"
             >
               <X className="size-4" />
             </button>
@@ -88,7 +88,7 @@ const ChatHeaderView = () => {
         )}
 
         {!isSearching && searchQuery && searchResults.length === 0 && (
-          <p className="text-center text-slate-500 text-sm py-4">
+          <p className="text-center text-base-content/40 text-sm py-4">
             No messages found
           </p>
         )}
@@ -105,7 +105,7 @@ const ChatHeaderView = () => {
                   <span className="text-xs font-semibold text-primary">
                     {message.senderId?.fullName}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-base-content/40">
                     {formatMessageTime(message.createdAt)}
                   </span>
                 </div>
@@ -120,10 +120,38 @@ const ChatHeaderView = () => {
     )
   }
 
+  const renderProfilePicture = () => {
+    return selectedChat.isGroupChat ? (
+      <div className="size-10 rounded-full flex items-center justify-center border border-base-content/50 bg-base-300">
+        {
+          otherUser?.profilePicture ?
+            <img
+              src={otherUser?.profilePicture || Avatar}
+              alt={chatName}
+              className="size-10 rounded-full object-cover"
+            /> :
+            <Users className="size-5 text-base-content" />
+        }
+
+      </div>
+    ) : (
+      <>
+        <img
+          src={otherUser?.profilePicture || Avatar}
+          alt={chatName}
+          className="size-10 rounded-full object-cover"
+        />
+        {isOnline && (
+          <span className="absolute bottom-0 right-0 size-2.5 bg-green-500 rounded-full ring-2 ring-base-100" />
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-base-300/90 border-b border-zinc-500 shadow-sm shrink-0">
-        <div className="flex items-center gap-3 cursor-pointer">
+      <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-base-300/90 border-b border-base-content/50 shadow-sm shrink-0">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => {
               setMobileView("list");
@@ -131,66 +159,43 @@ const ChatHeaderView = () => {
             }}
             className="md:hidden mr-2"
           >
-            <ArrowLeft className="text-slate-100" />
+            <ArrowLeft className="text-base-content" />
           </button>
           <div
             className="flex items-center gap-3"
           >
             <div className="relative">
-              {selectedChat.isGroupChat ? (
-                <div className="size-10 rounded-full flex items-center justify-center border border-zinc-500 bg-base-300">
-                  {
-                    otherUser?.profilePicture ?
-                      <img
-                        src={otherUser?.profilePicture || Avatar}
-                        alt={chatName}
-                        className="size-10 rounded-full object-cover"
-                      /> :
-                      <Users className="size-5 text-zinc-200" />
-                  }
+              {renderProfilePicture()}
 
-                </div>
-              ) : (
-                <>
-                  <img
-                    src={otherUser?.profilePicture || Avatar}
-                    alt={chatName}
-                    className="size-10 rounded-full object-cover"
-                  />
-                  {isOnline && (
-                    <span className="absolute bottom-0 right-0 size-2.5 bg-green-500 rounded-full ring-2 ring-base-100" />
-                  )}
-                </>
-              )}
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-100 dark:text-white">
+              <h2 className="text-sm font-bold text-base-content">
                 {chatName}
               </h2>
-              <p className={`text-sm text-slate-400`}>
+              <p className={`text-sm text-base-content/60`}>
                 {selectedChat.isGroupChat
                   ? `${selectedChat.users?.length} members`
                   : isOnline ? "Online" : lastSeen
-                  ? `Last seen ${formatLastSeen(lastSeen)}`
-                  : "Offline"
+                    ? `Last seen ${formatLastSeen(lastSeen)}`
+                    : "Offline"
                 }
               </p>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 md:gap-4">
+        <div className="flex items-center gap-1 md:gap-6">
           {selectedChat.isGroupChat && (
-            <button onClick={() => setIsSidebarOpen(true)} className="btn btn-ghost btn-circle btn-sm">
-              <InfoIcon className="size-5 text-slate-400" />
+            <button onClick={() => setIsSidebarOpen(true)} className="transition-colors text-base-content hover:text-base-content/60">
+              <InfoIcon className="size-5" />
             </button>
           )}
           <button
             onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className={`btn btn-ghost btn-circle btn-sm ${isSearchOpen ? "text-primary" : "text-slate-200"}`}
+            className={`transition-colors text-base-content hover:text-base-content/60 ${isSearchOpen ? "text-primary" : "text-base-content"}`}
           >
             <SearchIcon className="size-5" />
           </button>
-          <button onClick={() => setSelectedChat(null)} className={`hidden lg:block md:flex p-2 rounded-full transition-colors text-slate-100 hover:text-slate-400`}>
+          <button onClick={() => setSelectedChat(null)} className={`hidden lg:block md:flex transition-colors text-base-content hover:text-base-content/60`}>
             <X className="size-5" />
           </button>
         </div>

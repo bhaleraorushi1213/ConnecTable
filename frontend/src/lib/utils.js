@@ -72,3 +72,32 @@ export const formatLastSeen = (lastSeen) => {
 
   return last.toLocaleDateString();
 };
+
+export const getMessageStatus = (message, authUserId, chatUsers) => {
+  if (!message || message.senderId?._id !== authUserId &&
+    message.senderId !== authUserId) return null;
+
+  const otherUsers = chatUsers?.filter(
+    (u) => u._id !== authUserId && u._id?.toString() !== authUserId
+  ) || [];
+
+  if (!otherUsers.length) return "sent";
+
+  const allRead = otherUsers.every((u) =>
+    message.readBy?.some(
+      (r) => r.toString() === u._id?.toString() || r === u._id
+    )
+  );
+
+  if (allRead) return "read";
+
+  const allDelivered = otherUsers.every((u) =>
+    message.deliveredTo?.some(
+      (d) => d.toString() === u._id?.toString() || d === u._id
+    )
+  );
+
+  if (allDelivered) return "delivered";
+
+  return "sent";
+};

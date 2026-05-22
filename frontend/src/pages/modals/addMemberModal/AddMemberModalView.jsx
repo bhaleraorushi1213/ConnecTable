@@ -21,11 +21,11 @@ const AddMemberModal = (props) => {
       <div className="bg-base-200 rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
 
         {/* header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
           <button onClick={onClose} className="btn btn-ghost btn-circle btn-sm">
             <X className="size-5" />
           </button>
-          <h2 className="text-white font-bold text-lg">Add Members</h2>
+          <h2 className="text-base-content font-bold text-lg">Add Members</h2>
           <button
             onClick={handleAdd}
             disabled={!selectedUsers?.length || isAdding}
@@ -40,7 +40,7 @@ const AddMemberModal = (props) => {
 
         {/* selected chips */}
         {selectedUsers?.length > 0 && (
-          <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-slate-700">
+          <div className="px-4 py-2 flex flex-wrap gap-2 border-b border-base-300">
             {selectedUsers.map((id) => {
               const user = users.find((u) => u._id === id);
               if (!user) return null;
@@ -63,15 +63,15 @@ const AddMemberModal = (props) => {
         )}
 
         {/* search */}
-        <div className="px-4 py-3 border-b border-slate-700">
+        <div className="px-4 py-3 border-b border-base-300">
           <div className="flex items-center gap-2 bg-base-300 rounded-lg px-3 py-2">
-            <Search className="size-4 text-slate-400" />
+            <Search className="size-4 text-base-content/60" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search users..."
-              className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+              className="flex-1 bg-transparent text-sm text-base-content placeholder:text-base-content/40 outline-none"
             />
           </div>
         </div>
@@ -79,12 +79,12 @@ const AddMemberModal = (props) => {
         {/* user list */}
         <div className="max-h-72 overflow-y-auto px-2 py-2">
           {!searchQuery && (
-            <p className="text-center text-slate-500 text-sm py-8">
+            <p className="text-center text-base-content/40 text-sm py-8">
               Search for people to add
             </p>
           )}
           {searchQuery && availableUsers.length === 0 && (
-            <p className="text-center text-slate-500 text-sm py-8">
+            <p className="text-center text-base-content/40 text-sm py-8">
               No users found
             </p>
           )}
@@ -99,10 +99,10 @@ const AddMemberModal = (props) => {
                 className="size-10 rounded-full object-cover"
               />
               <div className="flex-1 text-left min-w-0">
-                <p className="text-white text-sm font-semibold truncate">
+                <p className="text-base-content text-sm font-semibold truncate">
                   {user.fullName}
                 </p>
-                <p className="text-slate-400 text-xs truncate">{user.email}</p>
+                <p className="text-base-content/60 text-xs truncate">{user.email}</p>
               </div>
               <div className={`size-6 rounded-full border-2 flex items-center justify-center transition-all
                 ${selectedUsers.includes(user._id)
@@ -111,7 +111,7 @@ const AddMemberModal = (props) => {
                 }`}
               >
                 {selectedUsers.includes(user._id) && (
-                  <span className="text-white text-xs">✓</span>
+                  <span className="text-base-content text-xs">✓</span>
                 )}
               </div>
             </button>

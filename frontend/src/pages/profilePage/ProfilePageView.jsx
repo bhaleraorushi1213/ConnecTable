@@ -49,10 +49,10 @@ const ProfilePageView = (props) => {
     return (
       <div className="bg-base-200 rounded-xl p-4 flex items-center justify-between">
         <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+          <p className="text-xs text-base-content/60 uppercase tracking-wider mb-1">
             Account Status
           </p>
-          <p className="text-white text-sm">Active</p>
+          <p className="text-base-content text-sm">Active</p>
         </div>
         <span className="size-3 bg-green-500 rounded-full" />
       </div>
@@ -62,10 +62,10 @@ const ProfilePageView = (props) => {
   const renderMemberSinceField = () => {
     return (
       <div className="bg-base-200 rounded-xl p-4">
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Member Since
         </p>
-        <p className="text-white text-sm">
+        <p className="text-base-content text-sm">
           {new Date(authUser?.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "long",
@@ -79,10 +79,10 @@ const ProfilePageView = (props) => {
   const renderEmailField = () => {
     return (
       <div className="bg-base-200 rounded-xl p-4">
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Email
         </p>
-        <p className="text-slate-400 text-sm">{authUser?.email}</p>
+        <p className="text-base-content/60 text-sm">{authUser?.email}</p>
       </div>
     )
   };
@@ -91,11 +91,11 @@ const ProfilePageView = (props) => {
     return (
       <div className="bg-base-200 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">
+          <p className="text-xs text-base-content/60 uppercase tracking-wider">
             Bio
           </p>
           {isEditing && (
-            <span className={`text-xs ${formData.bio.length > 130 ? "text-red-400" : "text-slate-500"}`}>
+            <span className={`text-xs ${formData.bio.length > 130 ? "text-red-400" : "text-base-content/40"}`}>
               {formData.bio.length}/150
             </span>
           )}
@@ -108,14 +108,14 @@ const ProfilePageView = (props) => {
                 setFormData({ ...formData, bio: e.target.value });
               }
             }}
-            className="w-full bg-transparent text-white outline-none text-sm resize-none border-b border-slate-600 pb-1 focus:border-primary transition-colors"
+            className="w-full bg-transparent text-base-content outline-none text-sm resize-none border-b border-slate-600 pb-1 focus:border-primary transition-colors"
             placeholder="Write something about yourself..."
             rows={3}
           />
         ) : (
-          <p className="text-white text-sm">
+          <p className="text-base-content text-sm">
             {authUser?.bio || (
-              <span className="text-slate-500 italic">No bio yet</span>
+              <span className="text-base-content/40 italic">No bio yet</span>
             )}
           </p>
         )}
@@ -126,24 +126,24 @@ const ProfilePageView = (props) => {
   const renderUsernameField = () => {
     return (
       <div className="bg-base-200 rounded-xl p-4">
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Username
         </p>
         {isEditing ? (
           <div className="flex items-center gap-1 border-b border-slate-600 pb-1 focus-within:border-primary transition-colors">
-            <span className="text-slate-400 text-sm">@</span>
+            <span className="text-base-content/60 text-sm">@</span>
             <input
               type="text"
               value={formData.userName}
               onChange={(e) =>
                 setFormData({ ...formData, userName: e.target.value })
               }
-              className="flex-1 bg-transparent text-white outline-none text-sm"
+              className="flex-1 bg-transparent text-base-content outline-none text-sm"
               placeholder="username"
             />
           </div>
         ) : (
-          <p className="text-white text-sm">@{authUser?.userName}</p>
+          <p className="text-base-content text-sm">@{authUser?.userName}</p>
         )}
       </div>
     )
@@ -152,7 +152,7 @@ const ProfilePageView = (props) => {
   const renderFullNameField = () => {
     return (
       <div className="bg-base-200 rounded-xl p-4">
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Full Name
         </p>
         {isEditing ? (
@@ -162,11 +162,11 @@ const ProfilePageView = (props) => {
             onChange={(e) =>
               setFormData({ ...formData, fullName: e.target.value })
             }
-            className="w-full bg-transparent text-white outline-none text-sm border-b border-slate-600 pb-1 focus:border-primary transition-colors"
+            className="w-full bg-transparent text-base-content outline-none text-sm border-b border-slate-600 pb-1 focus:border-primary transition-colors"
             placeholder="Your full name"
           />
         ) : (
-          <p className="text-white text-sm">{authUser?.fullName}</p>
+          <p className="text-base-content text-sm">{authUser?.fullName}</p>
         )}
       </div>
     )
@@ -187,7 +187,7 @@ const ProfilePageView = (props) => {
                 onClick={() => fileInputRef.current?.click()}
                 className="absolute bottom-0 right-0 size-9 bg-primary rounded-full flex items-center justify-center hover:bg-primary-hover transition-colors shadow-lg"
               >
-                <Camera className="size-5 text-white" />
+                <Camera className="size-5 text-base-content" />
               </button>
               <input
                 ref={fileInputRef}
@@ -202,10 +202,10 @@ const ProfilePageView = (props) => {
 
         {!isEditing && (
           <div className="mt-4 text-center">
-            <h2 className="text-white text-xl font-bold">
+            <h2 className="text-base-content text-xl font-bold">
               {authUser?.fullName}
             </h2>
-            <p className="text-slate-400 text-sm">@{authUser?.userName}</p>
+            <p className="text-base-content/60 text-sm">@{authUser?.userName}</p>
           </div>
         )}
       </div>
@@ -214,19 +214,19 @@ const ProfilePageView = (props) => {
 
   const renderHeader = () => {
     return (
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-base-200 fixed w-full z-10">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-base-200 bg-base-200 fixed w-full z-10">
         <button
           onClick={() => navigate(-1)}
-          className="btn btn-ghost btn-circle btn-sm text-slate-400"
+          className="btn btn-ghost btn-circle btn-sm text-base-content/60"
         >
-          <ArrowLeft className="size-5 text-white" />
+          <ArrowLeft className="size-5 text-base-content" />
         </button>
-        <h1 className="text-white font-bold text-lg">Profile</h1>
+        <h1 className="text-base-content font-bold text-lg">Profile</h1>
         {isEditing ? (
           <div className="flex gap-2">
             <button
               onClick={handleCancel}
-              className="btn btn-ghost btn-circle btn-sm text-slate-400"
+              className="btn btn-ghost btn-circle btn-sm text-base-content/60"
             >
               <X className="size-5" />
             </button>

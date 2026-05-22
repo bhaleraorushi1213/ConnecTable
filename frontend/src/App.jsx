@@ -21,15 +21,6 @@ const App = () => {
 		checkAuth();
 	}, [checkAuth]);
 
-	useEffect(() => {
-		const root = document.documentElement;
-		if (theme === "dark") {
-			root.classList.add("dark");
-		} else {
-			root.classList.remove("dark");
-		}
-	}, [theme]);
-
 	if (isCheckingAuth && !authUser) {
 		return (
 			<div className="flex items-center justify-center h-screen">
