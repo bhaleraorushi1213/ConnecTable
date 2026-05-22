@@ -1,4 +1,3 @@
-// src/pages/SettingsPage.jsx
 import { useThemeStore } from "../store/useThemeStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { requestNotificationPermission } from "../lib/notifications.js";
@@ -7,12 +6,9 @@ import { ArrowLeft, Bell, BellOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 import Avatar from "../assets/default-avatar.png";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { THEMES } from "../constants/index.js";
 
-const THEMES = [
-	"light", "dark", "cupcake", "forest",
-	"aqua", "synthwave", "cyberpunk", "dracula"
-];
 
 const SettingsPage = () => {
 	const {
@@ -28,6 +24,8 @@ const SettingsPage = () => {
 
 	const { authUser } = useAuthStore();
 
+	const navigate = useNavigate();
+
 	const handleNotificationToggle = async () => {
 		if (!notificationsEnabled) {
 			const granted = await requestNotificationPermission();
@@ -42,37 +40,40 @@ const SettingsPage = () => {
 	return (
 		<div className="h-full bg-base-100 p-6 max-w-2xl mx-auto mt-16">
 			<div className="flex gap-x-6 items-center mb-8">
-				<Link to="/" className="hover:bg-base-300 p-3 rounded-full">
+				<button onclick={() => navigate(-1)} className="hover:bg-base-300 p-3 rounded-full">
 					<ArrowLeft className="size-6" />
-				</Link>
-				<div className="text-2xl font-bold text-white ">Settings</div>
+				</button>
+				<div className="text-2xl font-bold text-base-content ">Settings</div>
 			</div>
 
 			{/* theme section */}
 			<section className="mb-8">
-				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+				<h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
 					Appearance
 				</h2>
 				<div className="grid grid-cols-4 gap-2">
 					{THEMES.map((t) => (
 						<button
-							key={t}
-							onClick={() => setTheme(t)}
-							data-theme={t}
+							key={t.id}
+							onClick={() => setTheme(t.id)}
 							className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
-                ${theme === t
+                ${theme === t.id
 									? "border-primary"
-									: "border-transparent hover:border-slate-600"
+									: "border-base-content/10 hover:border-base-content/30"
 								}`}
 						>
-							<div className="grid grid-cols-2 gap-0.5 w-8">
-								<div className="h-3 rounded-sm bg-primary" />
-								<div className="h-3 rounded-sm bg-secondary" />
-								<div className="h-3 rounded-sm bg-accent" />
-								<div className="h-3 rounded-sm bg-neutral" />
+							<div className="grid grid-cols-2 gap-0.5 w-8 rounded overflow-hidden">
+								{t.preview.map((color, i) => (
+									
+									<div
+										key={i}
+										className="h-3 rounded-sm"
+										style={{ backgroundColor: color }}
+									/>
+								))}
 							</div>
-							<span className="text-xs text-white capitalize truncate w-full text-center">
-								{t}
+							<span className="text-xs text-base-content capitalize">
+								{t.label}
 							</span>
 						</button>
 					))}
@@ -81,7 +82,7 @@ const SettingsPage = () => {
 
 			{/* sound section */}
 			<section className="mb-8">
-				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+				<h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
 					Sound
 				</h2>
 				<div className="flex flex-col gap-4 bg-base-200 rounded-xl p-4">
@@ -91,13 +92,13 @@ const SettingsPage = () => {
 						<div className="flex items-center gap-3">
 							{soundEnabled
 								? <Volume2 className="size-5 text-primary" />
-								: <VolumeX className="size-5 text-slate-400" />
+								: <VolumeX className="size-5 text-base-content/60" />
 							}
 							<div>
-								<p className="text-sm font-medium text-white">
+								<p className="text-sm font-medium text-base-content">
 									Message Sounds
 								</p>
-								<p className="text-xs text-slate-400">
+								<p className="text-xs text-base-content/60">
 									Play sounds for new messages
 								</p>
 							</div>
@@ -113,7 +114,7 @@ const SettingsPage = () => {
 					{/* volume slider */}
 					{soundEnabled && (
 						<div className="flex items-center gap-3">
-							<VolumeX className="size-4 text-slate-400" />
+							<VolumeX className="size-4 text-base-content/60" />
 							<input
 								type="range"
 								min="0"
@@ -123,7 +124,7 @@ const SettingsPage = () => {
 								onChange={(e) => setMessageVolume(Number(e.target.value))}
 								className="range range-primary range-sm flex-1"
 							/>
-							<Volume2 className="size-4 text-slate-400" />
+							<Volume2 className="size-4 text-base-content/60" />
 						</div>
 					)}
 				</div>
@@ -131,7 +132,7 @@ const SettingsPage = () => {
 
 			{/* notifications section */}
 			<section className="mb-8">
-				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+				<h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
 					Notifications
 				</h2>
 				<div className="bg-base-200 rounded-xl p-4">
@@ -139,13 +140,13 @@ const SettingsPage = () => {
 						<div className="flex items-center gap-3">
 							{notificationsEnabled
 								? <Bell className="size-5 text-primary" />
-								: <BellOff className="size-5 text-slate-400" />
+								: <BellOff className="size-5 text-base-content/60" />
 							}
 							<div>
-								<p className="text-sm font-medium text-white">
+								<p className="text-sm font-medium text-base-content">
 									Push Notifications
 								</p>
-								<p className="text-xs text-slate-400">
+								<p className="text-xs text-base-content/60">
 									Show notifications when app is in background
 								</p>
 							</div>
@@ -162,7 +163,7 @@ const SettingsPage = () => {
 
 			{/* profile preview */}
 			<section className="pb-8">
-				<h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+				<h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
 					Profile Preview
 				</h2>
 				<div className="bg-base-200 rounded-xl p-4 flex items-center gap-4">
@@ -171,9 +172,9 @@ const SettingsPage = () => {
 						className="size-14 rounded-full object-cover border-2 border-primary"
 					/>
 					<div>
-						<p className="text-white font-semibold">{authUser?.fullName}</p>
-						<p className="text-slate-400 text-sm">@{authUser?.userName}</p>
-						<p className="text-slate-500 text-xs">{authUser?.email}</p>
+						<p className="text-base-content font-semibold">{authUser?.fullName}</p>
+						<p className="text-base-content/60 text-sm">@{authUser?.userName}</p>
+						<p className="text-base-content/40 text-xs">{authUser?.email}</p>
 					</div>
 				</div>
 			</section>

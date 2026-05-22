@@ -4,9 +4,10 @@ import { useAuthStore } from "../../../store/useAuthStore.js";
 
 import { Forward, Reply, Smile, Trash2 } from "lucide-react";
 
-import { formatMessageTime } from "../../../lib/utils.js";
+import { formatMessageTime, getMessageStatus } from "../../../lib/utils.js";
 import { ReactionPicker } from "../reactionPicker/ReactionPicker.jsx";
 import ForwardMessageModal from "../../modals/forwardMessageModal/ForwardMessageModal.jsx";
+import MessageStatus from "../messageStatus/MessageStatus.jsx";
 
 const MessageBubbleView = (props) => {
   const {
@@ -44,13 +45,21 @@ const MessageBubbleView = (props) => {
     return () => document.removeEventListener("click", handleDocumentClick);
   }, [isMenuOpen, setIsMenuOpen]);
 
+  const status = isOwnMessage
+    ? getMessageStatus(message, authUser._id, selectedChat?.users)
+    : null;
+
   const scrollToMessage = (messageId) => {
     const el = document.getElementById(`message-${messageId}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
 
       el.classList.add("bg-primary/10");
-      setTimeout(() => el.classList.remove("bg-primary/10"), 1500);
+      el.classList.add("rounded-lg");
+      setTimeout(() => {
+        el.classList.remove("bg-primary/10");
+        el.classList.remove("rounded-lg");
+      }, 1500);
     }
   };
 
@@ -58,15 +67,15 @@ const MessageBubbleView = (props) => {
     if (!replyTo) return null;
 
     return (
-      <div className="mb-1.5 px-2 py-1.5 bg-slate-700/60 rounded-lg border-l-4 border-green-800 max-w-[200px]">
-        <p className="text-xs text-slate-100 font-semibold truncate">
+      <div className="mb-1.5 px-2 py-1.5 bg-base-300/60 rounded-lg border-l-4 border-base-300 max-w-[200px]">
+        <p className="text-xs text-base-content font-semibold truncate">
           {replyTo.senderId?.fullName || "Unknown"}
         </p>
         {replyTo.image && !replyTo.text && (
-          <p className="text-xs text-slate-100">📷 Image</p>
+          <p className="text-xs text-base-content">📷 Image</p>
         )}
         {replyTo.text && (
-          <p className="text-xs text-slate-100 truncate">{replyTo.text}</p>
+          <p className="text-xs text-base-content truncate">{replyTo.text}</p>
         )}
       </div>
     );
@@ -92,17 +101,18 @@ const MessageBubbleView = (props) => {
             {message.senderId?.fullName || "Unknown"}
           </span>
         )}
-        <time className="text-xs text-slate-300 opacity-70 pr-2">
+        <time className="text-xs text-base-content pr-2">
           {formatMessageTime(message.createdAt)}
         </time>
+        {isOwnMessage && <MessageStatus status={status} />}
       </div>
     )
   }
 
   const renderChatBubble = () => {
     return (
-      <div className={`rounded-xl max-w-[250px] md:max-w-[400px] flex flex-col text-slate-100 p-1.5 flex-wrap ${isOwnMessage ? "bg-primary rounded-tr-none" : "bg-slate-700 rounded-tl-none"}`}>
-        {/* reply preview - clickable to scroll */}
+      <div className={`rounded-xl max-w-[250px] md:max-w-[400px] flex flex-col text-base-content p-1.5 flex-wrap ${isOwnMessage ? "bg-primary rounded-tr-none" : "bg-base-content/20 rounded-tl-none"}`}>
+        
         {message.replyTo && (
           <button
             onClick={() => scrollToMessage(message.replyTo._id)}
@@ -118,7 +128,9 @@ const MessageBubbleView = (props) => {
             className="sm:max-w-[200px] rounded-md mb-2 object-cover"
           />
         )}
-        {message.text && <p className="px-2 break-all whitespace-pre-wrap">{message.text}</p>}
+        {message.text &&
+          <p className={`px-2 break-all whitespace-pre-wrap ${isOwnMessage ? "text-base-300" : "text-base-content"}`}>{message.text}</p>
+        }
       </div>
     )
   };
@@ -131,7 +143,7 @@ const MessageBubbleView = (props) => {
         {/* reply button */}
         <button
           onClick={() => setReplyingTo(message)}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="Reply"
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="Reply"
         >
           <Reply className="size-3.5" />
         </button>
@@ -139,7 +151,7 @@ const MessageBubbleView = (props) => {
         {/* reaction button */}
         <button
           onClick={() => setShowPicker((p) => !p)}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="React"
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="React"
         >
           <Smile className="size-3.5" />
         </button>
@@ -149,7 +161,7 @@ const MessageBubbleView = (props) => {
             setForwardingMessage(message);
             setShowForward(true);
           }}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-slate-400 hover:text-primary border border-slate-600 transition-colors tooltip" data-tip="Forward"
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="Forward"
         >
           <Forward className="size-3.5" />
         </button>
@@ -158,7 +170,7 @@ const MessageBubbleView = (props) => {
         {isOwnMessage && (
           <button
             onClick={() => deleteMessage(message._id)}
-            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 border border-slate-600 transition-colors tooltip" data-tip="Delete"
+            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-800 hover:text-red-600 border border-base-content/60 transition-colors tooltip" data-tip="Delete"
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -170,7 +182,7 @@ const MessageBubbleView = (props) => {
   const renderMessageReactions = () => {
 
     return message.reactions?.length > 0 && (
-      <div className="flex flex-wrap gap-1 mt-1">
+      <div className={`absolute flex flex-wrap gap-1 mt-1 ${isOwnMessage ? "right-4 -bottom-4" : "left-4 -bottom-4"}`}>
         {Object.entries(
           message.reactions.reduce((acc, r) => {
             acc[r.emoji] = (acc[r.emoji] || 0) + 1;
@@ -187,7 +199,7 @@ const MessageBubbleView = (props) => {
               className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors
                   ${myReaction?.emoji === emoji
                   ? "bg-primary/20 border-primary text-primary"
-                  : "bg-base-300 border-slate-600 text-slate-300 hover:border-primary/50"
+                  : "bg-base-300 border-base-content/50 text-base-content hover:border-primary/50"
                 }`}
             >
               <span>{emoji}</span>
@@ -225,6 +237,7 @@ const MessageBubbleView = (props) => {
       </div>
 
       {renderMessageReactions()}
+
       {showForward && (
         <ForwardMessageModal onClose={() => setShowForward(false)} />
       )}

@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
 export const useThemeStore = create((set) => ({
-  theme: localStorage.getItem("chat-theme") || "light",
+  theme: localStorage.getItem("theme") || "dark",
   soundEnabled: localStorage.getItem("soundEnabled") !== "false",
   notificationsEnabled: localStorage.getItem("notificationsEnabled") !== "false",
   messageVolume: localStorage.getItem("messageVolume") !== null ? Number(localStorage.getItem("messageVolume")) : 0.5,
 
   setTheme: (newTheme) => {
-    localStorage.setItem("chat-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
     set({ theme: newTheme });
   },
 

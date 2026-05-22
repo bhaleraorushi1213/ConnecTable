@@ -19,13 +19,13 @@ const NoChatSelectedPage = () => {
 				<h1 className="text-3xl font-bold text-base-900  mb-3">
 					Welcome to ConnecTable
 				</h1>
-				<p className="text-slate-500 dark:text-slate-400 max-w-md text-lg leading-relaxed mb-10">
+				<p className="text-base-content/40 dark:text-base-content/60 max-w-md text-lg leading-relaxed mb-10">
 					Select a conversation from the sidebar or start a new one to begin
 					messaging.
 				</p>
 				<button
 				onClick={() => setIsNewChatModalOpen(true)}
-					className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold text-base shadow-xl shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-3 hover:-translate-y-1"
+					className="px-8 py-4 bg-primary hover:bg-primary-hover text-base-content rounded-2xl font-bold text-base shadow-xl shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-3 hover:-translate-y-1"
 				>
 					<CircleFadingPlusIcon className="size-6" />
 					Start New Conversation

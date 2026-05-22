@@ -16,11 +16,11 @@ const ForwardMessageModalView = (props) => {
       <div className="bg-base-200 rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-2xl">
 
         {/* header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-base-300">
           <button onClick={onClose} className="btn btn-ghost btn-circle btn-sm">
             <X className="size-5" />
           </button>
-          <h2 className="text-white font-bold text-lg">Forward Message</h2>
+          <h2 className="text-base-content font-bold text-lg">Forward Message</h2>
           <button
             onClick={handleForward}
             disabled={!selectedChats.length || isForwarding}
@@ -34,9 +34,9 @@ const ForwardMessageModalView = (props) => {
         </div>
 
         {/* message preview */}
-        <div className="px-4 py-3 border-b border-slate-700 bg-base-300/50">
-          <p className="text-xs text-slate-400 mb-1">Forwarding:</p>
-          <p className="text-sm text-white truncate">
+        <div className="px-4 py-3 border-b border-base-300 bg-base-300/50">
+          <p className="text-xs text-base-content/60 mb-1">Forwarding:</p>
+          <p className="text-sm text-base-content truncate">
             {forwardingMessage?.text || "📷 Image"}
           </p>
         </div>
@@ -59,7 +59,7 @@ const ForwardMessageModalView = (props) => {
                   className="size-10 rounded-full object-cover"
                 />
               )}
-              <p className="flex-1 text-left text-sm font-medium text-white truncate">
+              <p className="flex-1 text-left text-sm font-medium text-base-content truncate">
                 {getChatName(chat, authUser)}
               </p>
               <div className={`size-6 rounded-full border-2 flex items-center justify-center transition-all
@@ -69,7 +69,7 @@ const ForwardMessageModalView = (props) => {
                 }`}
               >
                 {selectedChats.includes(chat._id) && (
-                  <span className="text-white text-xs">✓</span>
+                  <span className="text-base-content text-xs">✓</span>
                 )}
               </div>
             </button>
@@ -77,7 +77,7 @@ const ForwardMessageModalView = (props) => {
         </div>
 
         {selectedChats.length > 0 && (
-          <div className="px-4 py-2 border-t border-slate-700 text-xs text-slate-400">
+          <div className="px-4 py-2 border-t border-base-300 text-xs text-base-content/60">
             {selectedChats.length} chat{selectedChats.length > 1 ? "s" : ""} selected
           </div>
         )}

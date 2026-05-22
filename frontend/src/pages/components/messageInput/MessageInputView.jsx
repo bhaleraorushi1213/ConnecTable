@@ -24,13 +24,13 @@ const MessageInputView = (props) => {
             <span className="text-xs text-primary font-semibold">
               Replying to {replyingTo.senderId?.fullName || "Unknown"}
             </span>
-            <span className="text-xs text-slate-400 truncate">
+            <span className="text-xs text-base-content/60 truncate">
               {replyingTo.text || "📷 Image"}
             </span>
           </div>
           <button
             onClick={clearReplyingTo}
-            className="ml-2 text-slate-400 hover:text-white transition-colors"
+            className="ml-2 text-base-content/60 hover:text-base-content transition-colors"
           >
             <X className="size-4" />
           </button>
@@ -46,7 +46,7 @@ const MessageInputView = (props) => {
             />
             <button
               onClick={removeImage}
-              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300 text-white flex items-center justify-center"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300 text-base-content flex items-center justify-center"
               type="button"
             >
               <X className="size-3" />
@@ -60,12 +60,12 @@ const MessageInputView = (props) => {
 
             <input
               type="text"
-              className=" w-full input input-bordered rounded-lg input-sm sm:input-md bg-base-200 text-slate-100 placeholder:text-slate-300"
+              className=" w-full input input-bordered rounded-lg input-sm sm:input-md bg-base-200 text-base-content placeholder:text-slate-300"
               placeholder="Type a message..."
               value={text}
               onChange={handleTyping}
             />
-            <Mic className="absolute right-2 top-1.5 lg:right-2 lg:top-1/4 size-5 lg:size-6 hover:text-slate-100 cursor-pointer" />
+            <Mic className="absolute right-2 top-1.5 lg:right-2 lg:top-1/4 size-5 lg:size-6 hover:text-base-content cursor-pointer" />
           </div>
 
           <input
@@ -81,7 +81,7 @@ const MessageInputView = (props) => {
             className={`bg-emerald-500 hover:bg-emerald-700 rounded-full p-2 lg:p-4 ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
             onClick={() => fileInputRef.current?.click()}
           >
-            <Image className="size-5 lg:size-6 text-white" />
+            <Image className="size-5 lg:size-6 text-base-content" />
           </button>
 
           {/* Send button */}
@@ -90,8 +90,8 @@ const MessageInputView = (props) => {
             className="p-2 lg:p-4 rounded-full bg-cyan-600 hover:bg-cyan-800"
             disabled={(!text.trim() && !imagePreview) || isMessageSending}
           > {
-              isMessageSending ? <span className="loading loading-spinner text-white" /> :
-                <Send className="size-5 lg:size-6 text-white" />
+              isMessageSending ? <span className="loading loading-spinner text-base-content" /> :
+                <Send className="size-5 lg:size-6 text-base-content" />
             }
 
           </button>

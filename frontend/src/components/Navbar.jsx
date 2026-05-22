@@ -2,7 +2,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
 import { Link } from "react-router-dom";
-import { LogOut, MessageSquare } from "lucide-react";
+import { LogOut, MessageSquare, Settings } from "lucide-react";
 // import ThemeToggle from "./ThemeToggle";
 import Avatar from "../assets/default-avatar.png";
 
@@ -19,7 +19,7 @@ const Navbar = () => {
               <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="text-lg font-bold">ConnecTable</h1>
+              <h1 className="text-lg font-bold text-base-content">ConnecTable</h1>
             </Link>
           </div>
 
@@ -27,7 +27,7 @@ const Navbar = () => {
             {/* <ThemeToggle /> */}
             {authUser && (
               <>
-                <Link to={"/profile"} className={`flex items-center justify-between hover:bg-slate-800/50 py-2 px-3 rounded-lg`} >
+                <Link to={"/profile"} className={`flex items-center justify-between hover:hover:bg-base-content/20 py-2 px-3 rounded-lg`} >
 
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -40,13 +40,17 @@ const Navbar = () => {
                       <div className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-sidebar-dark"></div>
                     </div>
                     <div className="hidden md:flex flex-col">
-                      <h2 className="text-sm font-semibold leading-tight text-slate-900 dark:text-slate-100">
+                      <h2 className="text-sm font-semibold leading-tight text-base-content">
                         {authUser?.fullName || "User"}
                       </h2>
-                      <p className="text-slate-400 text-xs font-normal">Available</p>
+                      <p className="text-base-content/60 text-xs font-normal">Available</p>
                     </div>
                   </div>
 
+                </Link>
+
+                <Link to={"/settings"} className="hover:bg-base-content/20 p-3 rounded-full hidden lg:block">
+                  <Settings className="size-6" />
                 </Link>
 
                 <button onClick={logout} className={`flex gap-2 items-center`}>
