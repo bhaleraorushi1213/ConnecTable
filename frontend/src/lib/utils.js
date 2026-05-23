@@ -74,29 +74,33 @@ export const formatLastSeen = (lastSeen) => {
 };
 
 export const getMessageStatus = (message, authUserId, chatUsers) => {
-  if (!message || message.senderId?._id !== authUserId &&
-    message.senderId !== authUserId) return null;
+  if (!message || !authUserId) return null;
+
+  // only show status for own messages
+  const senderId = typeof message.senderId === "object"
+    ? message.senderId._id
+    : message.senderId;
+
+  if (senderId?.toString() !== authUserId?.toString()) return null;
 
   const otherUsers = chatUsers?.filter(
-    (u) => u._id !== authUserId && u._id?.toString() !== authUserId
+    (u) => u._id?.toString() !== authUserId?.toString()
   ) || [];
 
   if (!otherUsers.length) return "sent";
 
   const allRead = otherUsers.every((u) =>
     message.readBy?.some(
-      (r) => r.toString() === u._id?.toString() || r === u._id
+      (r) => r?.toString() === u._id?.toString()
     )
   );
-
   if (allRead) return "read";
 
   const allDelivered = otherUsers.every((u) =>
     message.deliveredTo?.some(
-      (d) => d.toString() === u._id?.toString() || d === u._id
+      (d) => d?.toString() === u._id?.toString()
     )
   );
-
   if (allDelivered) return "delivered";
 
   return "sent";

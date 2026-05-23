@@ -86,7 +86,7 @@ export const createGroupChat = async (req, res) => {
     }
 
     let newProfilePicture;
-    if (profilePicture){
+    if (profilePicture) {
       const uploadResponse = await cloudinary.uploader.upload(profilePicture);
       newProfilePicture = uploadResponse.secure_url;
     }
@@ -108,6 +108,13 @@ export const createGroupChat = async (req, res) => {
     const fullGroupChat = await Chat.findById(groupChat._id)
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
+
+    fullGroupChat.users.forEach((member) => {
+      const memberSocketId = getReceiverSocketId(member._id.toString());
+      if (memberSocketId) {
+        io.to(memberSocketId).emit("addedToGroup", fullGroupChat);
+      }
+    });
 
     res.status(200).json(fullGroupChat);
   } catch (error) {
@@ -138,7 +145,7 @@ export const updateGroupChat = async (req, res) => {
 
     const updates = {};
     if (chatName) updates.chatName = chatName;
-    if (profilePicture){
+    if (profilePicture) {
       const uploadResponse = await cloudinary.uploader.upload(profilePicture);
       updates.profilePicture = uploadResponse.secure_url;
     }

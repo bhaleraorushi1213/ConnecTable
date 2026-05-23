@@ -39,6 +39,8 @@ export const getAllMessages = async (req, res) => {
 
 		const messages = await Message.find({ chat: chatId })
 			.populate("senderId", "fullName profilePicture email")
+			.populate("readBy", "_id")
+			.populate("deliveredTo", "_id")
 			.populate({
 				path: "chat",
 				populate: {
@@ -130,6 +132,8 @@ export const sendMessage = async (req, res) => {
 
 		const fullMessage = await Message.findById(newMessage._id)
 			.populate("senderId", "fullName profilePicture email")
+			.populate("readBy", "_id")
+			.populate("deliveredTo", "_id")
 			.populate({
 				path: "chat",
 				populate: { path: "users", select: "fullName profilePicture email" }
@@ -156,25 +160,25 @@ export const sendMessage = async (req, res) => {
 		});
 
 		if (deliveredTo.length > 0) {
-      await Message.findByIdAndUpdate(newMessage._id, {
-        $addToSet: { deliveredTo: { $each: deliveredTo } },
-      });
+			await Message.findByIdAndUpdate(newMessage._id, {
+				$addToSet: { deliveredTo: { $each: deliveredTo } },
+			});
 
-      // notify sender of delivery
-      const senderSocketId = getReceiverSocketId(senderId.toString());
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("messageDelivered", {
-          messageId: newMessage._id,
-          deliveredTo,
-        });
-      }
-    }
+			// notify sender of delivery
+			const senderSocketId = getReceiverSocketId(senderId.toString());
+			if (senderSocketId) {
+				io.to(senderSocketId).emit("messageDelivered", {
+					messageId: newMessage._id,
+					deliveredTo,
+				});
+			}
+		}
 
 		const senderSocketId = getReceiverSocketId(senderId.toString());
 		if (senderSocketId) {
 			io.to(senderSocketId).emit("newMessage:global", fullMessage);
 		}
-		
+
 		res.status(201).json(fullMessage);
 	} catch (error) {
 		console.log("Error in sendMessage controller", error.message);

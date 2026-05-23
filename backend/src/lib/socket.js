@@ -46,6 +46,10 @@ io.on("connection", async (socket) => {
     }
   });
 
+  socket.on("markAsRead", ({ chatId, userId }) => {
+    socket.to(chatId).emit("messagesRead", { chatId, userId });
+  });
+
   socket.on("typing", (room, senderId) => socket.in(room).emit("typing", senderId));
   socket.on("stopTyping", (room, senderId) => socket.in(room).emit("stopTyping", senderId));
 
