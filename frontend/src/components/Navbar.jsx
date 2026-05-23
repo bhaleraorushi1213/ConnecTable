@@ -1,9 +1,9 @@
-import { useAuthStore } from "../store/useAuthStore";
-import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore.js";
+import { useChatStore } from "../store/useChatStore.js";
 
 import { Link } from "react-router-dom";
 import { LogOut, MessageSquare, Settings } from "lucide-react";
-// import ThemeToggle from "./ThemeToggle";
+
 import Avatar from "../assets/default-avatar.png";
 
 const Navbar = () => {
@@ -24,40 +24,35 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            {/* <ThemeToggle /> */}
             {authUser && (
-              <>
-                <Link to={"/profile"} className={`flex items-center justify-between hover:hover:bg-base-content/20 py-2 px-3 rounded-lg`} >
-
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div
-                        className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary"
-                        style={{
-                          backgroundImage: `url("${authUser?.profilePicture || Avatar}")`,
-                        }}
-                      ></div>
-                      <div className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-sidebar-dark"></div>
-                    </div>
-                    <div className="hidden md:flex flex-col">
-                      <h2 className="text-sm font-semibold leading-tight text-base-content">
-                        {authUser?.fullName || "User"}
-                      </h2>
-                      <p className="text-base-content/60 text-xs font-normal">Available</p>
-                    </div>
+              <Link to={"/profile"} className={`flex items-center justify-between hover:hover:bg-base-content/20 py-2 px-3 rounded-lg tooltip tooltip-bottom`} data-tip={authUser?.fullName}>
+                <div className="flex items-center gap-3 ">
+                  <div className="relative">
+                    <img
+                      className="bg-center bg-no-repeat aspect-square object-cover rounded-full size-10 border-2 border-primary"
+                      src={authUser?.profilePicture || Avatar}
+                    />
+                    <div className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full border-2 border-sidebar-dark"></div>
                   </div>
+                  <div className="hidden md:flex flex-col">
+                    <h2 className="text-sm font-semibold leading-tight text-base-content">
+                      {authUser?.fullName || "User"}
+                    </h2>
+                    <p className="text-base-content/60 text-xs font-normal">Available</p>
+                  </div>
+                </div>
 
-                </Link>
+              </Link>
+            )}
 
-                <Link to={"/settings"} className="hover:bg-base-content/20 p-3 rounded-full hidden lg:block">
-                  <Settings className="size-6" />
-                </Link>
-
-                <button onClick={logout} className={`flex gap-2 items-center`}>
-                  <LogOut className="size-5 text-red-600" />
-                  <span className="hidden sm:inline text-red-600">Logout</span>
-                </button>
-              </>
+            <Link to={"/settings"} className="hover:bg-base-content/20 p-3 rounded-full hidden lg:block">
+              <Settings className="size-6" />
+            </Link>
+            {authUser && (
+              <button onClick={logout} className={`flex gap-2 items-center`}>
+                <LogOut className="size-5 text-red-600" />
+                <span className="hidden sm:inline text-red-600">Logout</span>
+              </button>
             )}
           </div>
         </div>

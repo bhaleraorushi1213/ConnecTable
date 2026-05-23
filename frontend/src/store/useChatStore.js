@@ -24,17 +24,17 @@ export const useChatStore = create((set, get) => ({
   hasMoreMessages: false,
   isLoadingMoreMessages: false,
   isSearching: false,
-  isSearchOpen: false,
   isUsersLoading: false,
   isMessagesLoading: false,
   isMessageSending: false,
   isNewChatModalOpen: false,
   isTyping: false,
   isSidebarOpen: false,
+  groupNotifications: [],
+
+  setSearchResults: (results) => set({ searchResults: results }),
 
   setSearchQuery: (query) => set({ searchQuery: query }),
-
-  setIsSearchOpen: (value) => set({ isSearchOpen: value, searchQuery: "", searchResults: [] }),
 
   setReplyingTo: (message) => set({ replyingTo: message }),
 
@@ -58,7 +58,16 @@ export const useChatStore = create((set, get) => ({
     set({ selectedChat: chat });
     get().clearUnreadCount(chat?._id);
 
+    const { authUser, socket } = useAuthStore.getState();
+
     if (!chat) return;
+
+    if (socket?.connected) {
+      socket.emit("markAsRead", {
+        chatId: chat?._id,
+        userId: authUser._id,
+      });
+    }
 
     try {
       await axiosInstance.put(`/messages/markAsRead/${chat?._id}`);
@@ -129,10 +138,19 @@ export const useChatStore = create((set, get) => ({
 
   getFilteredUsers: () => {
     const { users, activeTab } = get();
-    if (activeTab === "all") return users;
-    if (activeTab === "direct") return users.filter((u) => !u.isGroupChat);
-    if (activeTab === "group") return users.filter((u) => u.isGroupChat);
-    return users;
+    let filtered = users;
+    if (activeTab === "direct") filtered = filtered.filter((u) => !u.isGroupChat);
+    if (activeTab === "group") filtered = filtered.filter((u) => u.isGroupChat);
+
+    return [...filtered].sort((a, b) => {
+      const aTime = a.latestMessage?.createdAt
+        ? new Date(a.latestMessage.createdAt)
+        : new Date(a.updatedAt || a.createdAt);
+      const bTime = b.latestMessage?.createdAt
+        ? new Date(b.latestMessage.createdAt)
+        : new Date(b.updatedAt || b.createdAt);
+      return bTime - aTime;
+    });
   },
 
   getMessages: async (chatId, page = 1) => {
@@ -188,11 +206,11 @@ export const useChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedChat._id}`, { ...messageData, replyTo: replyingTo?._id || null });
 
-      const updatedUsers = users.map((chat) =>
-        chat._id === selectedChat._id
-          ? { ...chat, latestMessage: res.data }
-          : chat
-      );
+      const updatedChat = { ...selectedChat, latestMessage: res.data };
+      const updatedUsers = [
+        updatedChat,
+        ...users.filter((c) => c._id !== selectedChat._id),
+      ];
 
       if (soundEnabled) playSound("sent", messageVolume);
 
@@ -280,14 +298,21 @@ export const useChatStore = create((set, get) => ({
       const successful = results.filter((r) => r.status === "fulfilled");
       const failed = results.filter((r) => r.status === "rejected");
 
-      const updatedUsers = users.map((chat) => {
-        const forwardedResult = successful.find(
-          (r) => r.value.data.chat._id === chat._id
+      let updatedUsers = [...users];
+      successful.forEach((r) => {
+        const forwardedChatId = r.value.data.chat._id;
+        const chatToUpdate = updatedUsers.find(
+          (c) => c._id.toString() === forwardedChatId.toString()
         );
-
-        return forwardedResult
-          ? { ...chat, latestMessage: forwardedResult.value.data }
-          : chat;
+        if (chatToUpdate) {
+          const updatedChat = { ...chatToUpdate, latestMessage: r.value.data };
+          updatedUsers = [
+            updatedChat,
+            ...updatedUsers.filter(
+              (c) => c._id.toString() !== forwardedChatId.toString()
+            ),
+          ];
+        }
       });
 
       set({ forwardingMessage: null, users: updatedUsers });
@@ -329,6 +354,7 @@ export const useChatStore = create((set, get) => ({
 
       // update selectedChat and users list
       const { users } = get();
+
       set({
         selectedChat: res.data,
         users: users.map((u) => u._id === chatId ? res.data : u),
@@ -464,12 +490,18 @@ export const useChatStore = create((set, get) => ({
           ? newMessage.chat._id.toString()
           : newMessage.chat.toString();
 
-      // always update latest message in list
-      const updatedUsers = users.map((chat) =>
-        chat._id.toString() === newMessageChatId
-          ? { ...chat, latestMessage: newMessage }
-          : chat
+      const chatToUpdate = users.find(
+        (c) => c._id.toString() === newMessageChatId
       );
+
+      if (!chatToUpdate) return;
+
+      const updatedChat = { ...chatToUpdate, latestMessage: newMessage };
+
+      const updatedUsers = [
+        updatedChat,
+        ...users.filter((c) => c._id.toString() !== newMessageChatId),
+      ];
 
       // only increment badge if not currently viewing that chat
       if (newMessageChatId !== selectedChat?._id?.toString()) {
@@ -496,11 +528,51 @@ export const useChatStore = create((set, get) => ({
       }
     });
 
+    socket.on("messageDelivered", ({ messageId, deliveredTo }) => {
+      const { messages } = get();
+      set({
+        messages: messages.map((m) =>
+          m._id === messageId
+            ? {
+              ...m,
+              deliveredTo: [
+                ...(m.deliveredTo || []),
+                ...deliveredTo,
+              ],
+            }
+            : m
+        ),
+      });
+    });
+
+    socket.on("messagesRead", ({ chatId, userId }) => {
+      const { messages, selectedChat: currentChat } = get();
+
+      if (currentChat?._id.toString() !== chatId?.toString()) return;
+
+      set({
+        messages: messages.map((m) => {
+          const alreadyRead = m.readBy?.some(
+            (r) => r?.toString() === userId?.toString()
+          );
+          if (alreadyRead) return m;
+          return {
+            ...m,
+            readBy: [...(m.readBy || []), userId],
+          };
+        }),
+      });
+    });
+
     socket.on("addedToGroup", (newChat) => {
       const { users } = get();
       const exists = users.find((u) => u._id === newChat._id);
       if (!exists) {
         set({ users: [newChat, ...users] });
+      } else {
+        set({
+          users: users.map((u) => u._id === newChat._id ? newChat : u),
+        });
       }
       toast.success(`You were added to ${newChat.chatName}`);
     });
@@ -515,10 +587,14 @@ export const useChatStore = create((set, get) => ({
     });
 
     socket.on("groupUpdated", (updatedChat) => {
-      const { users } = get();
+      const { users, selectedChat } = get();
       set({
         users: users.map((u) =>
           u._id === updatedChat._id ? updatedChat : u
+        ),
+        ...(selectedChat?._id === updatedChat._id
+          ? { selectedChat: updatedChat }
+          : {}
         ),
       });
     });
@@ -528,6 +604,8 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
     socket.off("newMessage:global");
+    socket.off("messageDelivered");
+    socket.off("messagesRead");
     socket.off("addedToGroup");
     socket.off("removedFromGroup");
     socket.off("groupUpdated");

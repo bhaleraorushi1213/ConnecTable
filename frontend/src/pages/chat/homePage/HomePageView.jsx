@@ -1,16 +1,16 @@
-import { useChatStore } from "../store/useChatStore.js";
-import ChatContainer from "./chat/components/chatContainer/ChatContainer.jsx";
-import ChatListPage from "./chat/components/chatListPage/ChatListPage.jsx";
-import NoChatSelectedPage from "./chat/components/noChatSelected/NoChatSelectedPage.jsx";
-import NewChatModal from "./chat/modals/newChatModal/NewChatModal.jsx";
+import { useChatStore } from "../../../store/useChatStore";
+import ChatContainer from "../components/chatContainer/ChatContainer";
+import ChatListPage from "../components/chatListPage/ChatListPage";
+import NoChatSelectedPage from "../components/noChatSelected/NoChatSelectedPage";
+import NewChatModal from "../modals/newChatModal/NewChatModal";
 
-const HomePage = () => {
+
+const HomePageView = () => {
   const { mobileView, selectedChat, isNewChatModalOpen } = useChatStore();
-
   return (
     <div className={`flex h-screen w-full relative overflow-hidden bg-base-500  ${mobileView === 'chat' ? 'pt-0 lg:pt-16' : "pt-16"}`}>
       <aside
-        className={`flex-shrink-0 h-full relative z-10 border-r border-zinc-500 transition-all duration-300 w-full lg:w-[400px] 
+        className={`flex-shrink-0 h-full relative z-10 border-r border-zinc-500 transition-all duration-300 w-full md:w-[400px] 
         ${mobileView === "list" ? "block" : "hidden lg:block"}`}
       >
         <ChatListPage />
@@ -33,7 +33,7 @@ const HomePage = () => {
         <NewChatModal />
       )}
     </div>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePageView
