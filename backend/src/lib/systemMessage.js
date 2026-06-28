@@ -4,6 +4,7 @@ import { getReceiverSocketId, io } from "./socket.js";
 
 export const createSystemMessage = async ({
   chatId,
+  senderId,
   type,
   text,
   meta = {},
@@ -11,7 +12,7 @@ export const createSystemMessage = async ({
 }) => {
   try {
     const systemMsg = await Message.create({
-      senderId: meta.actorId,
+      senderId,
       chat: chatId,
       isSystemMessage: true,
       systemMessageType: type,

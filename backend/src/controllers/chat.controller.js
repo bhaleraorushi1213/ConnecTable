@@ -116,6 +116,7 @@ export const createGroupChat = async (req, res) => {
 
     await createSystemMessage({
       chatId: groupChat._id,
+      senderId: req.user._id,
       type: "group_created",
       text: `${req.user.fullName} created the group "${chatName}"`,
       meta: {
@@ -197,6 +198,7 @@ export const updateGroupChat = async (req, res) => {
     if (changedFields.includes("name")) {
       await createSystemMessage({
         chatId,
+        senderId: req.user._id,
         type: "group_name_updated",
         text: `${req.user.fullName} changed the group name to "${chatName}"`,
         meta: { actorId: req.user._id, actorName: req.user.fullName, chatName },
@@ -207,6 +209,7 @@ export const updateGroupChat = async (req, res) => {
     if (changedFields.includes("photo")) {
       await createSystemMessage({
         chatId,
+        senderId: req.user._id,
         type: "group_photo_updated",
         text: `${req.user.fullName} updated the group photo`,
         meta: { actorId: req.user._id, actorName: req.user.fullName },
@@ -274,6 +277,7 @@ export const addMemberToGroup = async (req, res) => {
 
     await createSystemMessage({
       chatId,
+      senderId: req.user._id,
       type: "member_added",
       text: `${req.user.fullName} added ${addedUser?.fullName ?? "a user"} to the group`,
       meta: {
@@ -353,6 +357,7 @@ export const removeFromGroup = async (req, res) => {
 
     await createSystemMessage({
       chatId,
+      senderId: req.user._id,
       type: isLeaving ? "member_left" : "member_removed",
       text: isLeaving
         ? `${removedUser?.fullName ?? "A user"} left the group`
