@@ -21,6 +21,7 @@ export const useChatStore = create((set, get) => ({
   mobileView: "list",
   activeTab: "all",
   currentPage: 1,
+  conversationSearch: "",
   hasMoreMessages: false,
   isLoadingMoreMessages: false,
   isSearching: false,
@@ -31,6 +32,8 @@ export const useChatStore = create((set, get) => ({
   isTyping: false,
   isSidebarOpen: false,
   groupNotifications: [],
+
+  setConversationSearch: (query) => set({ conversationSearch: query }),
 
   setSearchResults: (results) => set({ searchResults: results }),
 
@@ -137,10 +140,27 @@ export const useChatStore = create((set, get) => ({
   },
 
   getFilteredUsers: () => {
-    const { users, activeTab } = get();
+    const { users, activeTab, conversationSearch } = get();
+    const { authUser } = useAuthStore.getState();
+
     let filtered = users;
+
     if (activeTab === "direct") filtered = filtered.filter((u) => !u.isGroupChat);
     if (activeTab === "group") filtered = filtered.filter((u) => u.isGroupChat);
+
+    if (conversationSearch?.trim()) {
+      const query = conversationSearch.toLowerCase();
+      filtered = filtered.filter((chat) => {
+        if (chat.isGroupChat) {
+          return chat.chatName?.toLowerCase().includes(query);
+        }
+        // for DMs search by the other user's name
+        const otherUser = chat.users?.find(
+          (u) => u._id !== authUser?._id
+        );
+        return otherUser?.fullName?.toLowerCase().includes(query);
+      });
+    }
 
     return [...filtered].sort((a, b) => {
       const aTime = a.latestMessage?.createdAt
@@ -234,7 +254,7 @@ export const useChatStore = create((set, get) => ({
       set({ messages: messages.filter((m) => m._id !== messageId) });
     } catch (error) {
       console.log("Error in deleteMessage", error);
-      toast.error("Failed to delete message");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -252,7 +272,7 @@ export const useChatStore = create((set, get) => ({
       set({ searchResults: res.data });
     } catch (error) {
       console.log("Error in searchMessages", error);
-      toast.error("Failed to search messages");
+      toast.error(error.response.data.message);
     } finally {
       set({ isSearching: false });
     }
@@ -274,7 +294,7 @@ export const useChatStore = create((set, get) => ({
       });
     } catch (error) {
       console.log("Error in reactToMessage", error);
-      toast.error("Failed to react to message");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -326,6 +346,7 @@ export const useChatStore = create((set, get) => ({
 
     } catch (error) {
       console.log("Error forwarding message", error);
+      toast.error(error.response.data.message);
     }
   },
 
@@ -341,7 +362,7 @@ export const useChatStore = create((set, get) => ({
       });
     } catch (error) {
       console.log("Error in updateGroup", error);
-      toast.error("Failed to update group");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -361,7 +382,7 @@ export const useChatStore = create((set, get) => ({
       });
     } catch (error) {
       console.log("Error in addMemberToGroup", error);
-      toast.error("Failed to add member");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -385,7 +406,7 @@ export const useChatStore = create((set, get) => ({
       toast.success("Member removed");
     } catch (error) {
       console.log("Error in removeFromGroup", error);
-      toast.error("Failed to remove member");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -408,7 +429,7 @@ export const useChatStore = create((set, get) => ({
       toast.success("Left group successfully");
     } catch (error) {
       console.log("Error leaving group", error);
-      toast.error("Failed to leave group");
+      toast.error(error.response.data.message);
     }
   },
 

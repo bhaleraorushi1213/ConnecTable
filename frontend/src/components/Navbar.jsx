@@ -23,9 +23,9 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             {authUser && (
-              <Link to={"/profile"} className={`flex items-center justify-between hover:hover:bg-base-content/20 py-2 px-3 rounded-lg tooltip tooltip-bottom`} data-tip={authUser?.fullName}>
+              <Link to={"/profile"} className={`flex items-center justify-between hover:bg-base-content/20 py-2 px-3 rounded-full tooltip tooltip-bottom`} data-tip={authUser?.fullName}>
                 <div className="flex items-center gap-3 ">
                   <div className="relative">
                     <img
@@ -45,11 +45,11 @@ const Navbar = () => {
               </Link>
             )}
 
-            <Link to={"/settings"} className="hover:bg-base-content/20 p-3 rounded-full hidden lg:block">
+            <Link to={"/settings"} className="hover:bg-base-content/20 p-3 rounded-full">
               <Settings className="size-6" />
             </Link>
             {authUser && (
-              <button onClick={logout} className={`flex gap-2 items-center`}>
+              <button onClick={logout} className={`flex gap-2 items-center hover:bg-base-content/20 p-3 rounded-full`}>
                 <LogOut className="size-5 text-red-600" />
                 <span className="hidden sm:inline text-red-600">Logout</span>
               </button>

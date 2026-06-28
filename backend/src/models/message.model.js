@@ -39,6 +39,28 @@ const messageSchema = new mongoose.Schema(
     isForward: {
       type: Boolean,
       default: false
+    },
+    isSystemMessage: {
+      type: Boolean,
+      default: false,
+    },
+    systemMessageType: {
+      type: String,
+      enum: [
+        "group_created",
+        "member_added",
+        "member_removed",
+        "member_left",
+        "group_name_updated",
+        "group_photo_updated",
+        "group_updated",
+        null
+      ],
+      default: null,
+    },
+    systemMessageMeta: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     }
   },
   { timestamps: true }
