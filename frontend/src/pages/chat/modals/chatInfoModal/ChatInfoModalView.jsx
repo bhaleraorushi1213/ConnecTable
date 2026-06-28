@@ -146,7 +146,13 @@ const ChatInfoModalView = (props) => {
             )}
           </div>
           {/* members list */}
-          <div className="px-4 pb-4 max-h-60 overflow-y-auto">
+          <div
+            className="px-4 pb-4 max-h-60 overflow-y-auto"
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "transparent transparent",
+            }}
+          >
             <div className="flex flex-col gap-2">
               {selectedChat?.users?.map((user) => {
                 const isGroupAdmin =
