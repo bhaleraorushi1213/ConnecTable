@@ -8,7 +8,7 @@ import ChatInfoModal from "../../modals/chatInfoModal/ChatInfoModal.jsx";
 import Avatar from "../../../../assets/default-avatar.png";
 
 const ChatHeaderView = (props) => {
-  const {isSearchOpen, setIsSearchOpen} = props;
+  const { isSearchOpen, setIsSearchOpen } = props;
   const {
     setMobileView,
     selectedChat,
@@ -19,7 +19,7 @@ const ChatHeaderView = (props) => {
     setSearchQuery,
     searchResults,
     isSearching,
-    
+
   } = useChatStore();
   const { onlineUsers, authUser, lastSeenMap } = useAuthStore();
 
@@ -86,7 +86,13 @@ const ChatHeaderView = (props) => {
             )}
 
             {!isSearching && searchResults.length > 0 && (
-              <div className="mt-2 flex flex-col gap-1 max-h-60 overflow-y-auto">
+              <div
+                className="mt-2 flex flex-col gap-1 max-h-60 overflow-y-auto"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "transparent transparent",
+                }}
+              >
                 {searchResults.map((message) => (
                   <button
                     key={message._id}

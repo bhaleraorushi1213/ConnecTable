@@ -47,7 +47,13 @@ const NewGroupScreenView = (props) => {
         </div>
       )}
 
-      <div className="relative z-10 flex-1 overflow-y-auto pb-8 bg-base-200">
+      <div
+        className="relative z-10 flex-1 overflow-y-auto pb-8 bg-base-200"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "transparent transparent",
+        }}
+      >
         {/* Group subject */}
         <div className="px-5 py-6">
           <div className="flex items-center gap-4">

@@ -7,8 +7,8 @@ import { getChatName } from "../../../../lib/utils.js";
 import Avatar from "../../../../assets/default-avatar.png";
 
 const ForwardMessageModalView = (props) => {
-  const { selectedChats, handleToggle, handleForward, isForwarding, onClose} = props;
-  const { users, forwardingMessage,  } = useChatStore();
+  const { selectedChats, handleToggle, handleForward, isForwarding, onClose } = props;
+  const { users, forwardingMessage, } = useChatStore();
   const { authUser } = useAuthStore();
 
   return (
@@ -42,7 +42,10 @@ const ForwardMessageModalView = (props) => {
         </div>
 
         {/* chat list */}
-        <div className="max-h-72 overflow-y-auto px-2 py-2">
+        <div
+          className="max-h-72 overflow-y-auto px-2 py-2"
+          style={{ scrollbarWidth: "thin" }}
+        >
           {users.map((chat) => (
             <button
               key={chat._id}

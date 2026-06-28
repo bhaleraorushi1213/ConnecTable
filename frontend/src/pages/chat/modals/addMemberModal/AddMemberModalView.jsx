@@ -78,7 +78,13 @@ const AddMemberModal = (props) => {
         </div>
 
         {/* user list */}
-        <div className="max-h-72 overflow-y-auto px-2 py-2">
+        <div
+          className="max-h-72 overflow-y-auto px-2 py-2"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "transparent transparent",
+          }}
+        >
           {!searchQuery && (
             <p className="text-center text-base-content/40 text-sm py-8">
               Search for people to add

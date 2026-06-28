@@ -36,7 +36,14 @@ const ChatContainerView = (props) => {
 
   const renderMessages = () => {
     return (
-      <div className="flex-1 flex flex-col overflow-auto px-4" ref={scrollContainerRef}>
+      <div
+        className="flex-1 flex flex-col overflow-auto px-4"
+        ref={scrollContainerRef}
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "transparent transparent",
+        }}
+      >
 
         {/* load more indicator at top */}
         {isLoadingMoreMessages && (
@@ -80,7 +87,7 @@ const ChatContainerView = (props) => {
                 </div>
               )}
 
-              
+
               <MessageBubble senderPic={senderPic} message={message} isOwnMessage={isOwnMessage} />
             </React.Fragment>
           )

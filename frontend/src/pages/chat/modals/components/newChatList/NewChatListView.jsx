@@ -48,13 +48,19 @@ const NewChatListView = (props) => {
               onClick={() => setSearchQuery("")}
               className="absolute right-3 flex items-center"
             >
-              <CircleX className="size-5 text-base-content"/>
+              <CircleX className="size-5 text-base-content" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pb-8 bg-base-200">
+      <div
+        className="flex-1 overflow-y-auto custom-scrollbar pb-8 bg-base-200"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "transparent transparent",
+        }}
+      >
         <div className="px-4 py-2 space-y-1">
           <button
             onClick={() => onNavigate("newGroup")}
