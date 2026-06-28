@@ -149,9 +149,8 @@ export const useChatStore = create((set, get) => ({
     if (activeTab === "group") filtered = filtered.filter((u) => u.isGroupChat);
 
     if (conversationSearch?.trim()) {
-      const query = conversationSearch.toLowerCase();
-      filtered = filtered.filter((chat) => {
-        if (chat.isGroupChat) {
+      const query = conversationSearch.trim().toLowerCase();
+      filtered = filtered.filter((chat) => {        if (chat.isGroupChat) {
           return chat.chatName?.toLowerCase().includes(query);
         }
         // for DMs search by the other user's name
@@ -254,7 +253,7 @@ export const useChatStore = create((set, get) => ({
       set({ messages: messages.filter((m) => m._id !== messageId) });
     } catch (error) {
       console.log("Error in deleteMessage", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
     }
   },
 

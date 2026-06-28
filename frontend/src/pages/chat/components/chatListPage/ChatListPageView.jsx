@@ -71,6 +71,7 @@ const ChatListPageView = (props) => {
           <input
             className="flex-1 bg-transparent border-none text-sm md:text-base focus:ring-0 focus:outline-none placeholder:text-base-content/40 text-base-content p-0"
             placeholder="Search conversations..."
+            value={conversationSearch}
             onChange={(e) => setConversationSearch(e.target.value)}
           />
           {conversationSearch && (

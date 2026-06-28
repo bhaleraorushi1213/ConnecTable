@@ -11,6 +11,7 @@ export const createSystemMessage = async ({
 }) => {
   try {
     const systemMsg = await Message.create({
+      senderId: meta.actorId,
       chat: chatId,
       isSystemMessage: true,
       systemMessageType: type,

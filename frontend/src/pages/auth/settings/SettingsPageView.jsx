@@ -24,7 +24,7 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
 
       <div className="h-full bg-base-300/60 p-6 max-w-2xl mx-auto mt-16 rounded-2xl">
         <div className="flex gap-x-6 items-center mb-8">
-          <Link to={"/"} className="hover:bg-base-300 p-3 rounded-full">
+          <Link to={"/"} aria-label="Back to chats" className="hover:bg-base-300 p-3 rounded-full">
             <ArrowLeft className="size-6" />
           </Link>
           <div className="text-2xl font-bold text-base-content ">Settings</div>
