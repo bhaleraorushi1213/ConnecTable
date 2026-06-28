@@ -30,7 +30,8 @@ const LoginPage = () => {
 		const success = validateForm();
 
 		if (success === true) {
-			await login(formData);		}
+			await login(formData);
+		}
 	};
 
 	return (

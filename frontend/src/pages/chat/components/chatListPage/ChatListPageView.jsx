@@ -1,7 +1,7 @@
 import { useAuthStore } from "../../../../store/useAuthStore.js";
 import { useChatStore } from "../../../../store/useChatStore.js";
 
-import { MessagesSquareIcon, PlusIcon, SearchIcon, Users } from "lucide-react";
+import { MessagesSquareIcon, PlusIcon, SearchIcon, Users, X } from "lucide-react";
 import { formatLastSeen, getChatName, getMessageStatus, isUserOnline } from "../../../../lib/utils.js";
 
 import Avatar from "../../../../assets/default-avatar.png";
@@ -17,7 +17,9 @@ const ChatListPageView = (props) => {
     activeTab,
     setIsNewChatModalOpen,
     getFilteredUsers,
-    unreadCounts
+    unreadCounts,
+    conversationSearch,
+    setConversationSearch,
   } = useChatStore();
 
   const { onlineUsers, authUser, lastSeenMap } = useAuthStore();
@@ -69,8 +71,17 @@ const ChatListPageView = (props) => {
           <input
             className="flex-1 bg-transparent border-none text-sm md:text-base focus:ring-0 focus:outline-none placeholder:text-base-content/40 text-base-content p-0"
             placeholder="Search conversations..."
-            onChange={() => { }}
+            value={conversationSearch}
+            onChange={(e) => setConversationSearch(e.target.value)}
           />
+          {conversationSearch && (
+            <button
+              onClick={() => setConversationSearch("")}
+              className="text-slate-400 hover:text-slate-600 ml-1"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
       </div>
     );
@@ -108,12 +119,32 @@ const ChatListPageView = (props) => {
           <div className="size-20 bg-base-100/10 border border-base-content/80 rounded-full flex items-center justify-center mb-4 text-base-content/60 ">
             <MessagesSquareIcon className="size-12" />
           </div>
-          <h3 className="text-base-content font-semibold mb-1">
-            No chats yet
-          </h3>
-          <p className="text-base-content/60 text-sm md:text-base mb-6">
-            Press the "+" button to start a new conversation.
-          </p>
+          {conversationSearch ? (
+            // 👇 different message when searching
+            <>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-1">
+                No results found
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+                No conversations match "{conversationSearch}"
+              </p>
+              <button
+                onClick={() => setConversationSearch("")}
+                className="text-primary text-sm font-medium"
+              >
+                Clear search
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-1">
+                No chats yet
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+                Press the "+" button to start a new conversation.
+              </p>
+            </>
+          )}
         </div>
       );
     }

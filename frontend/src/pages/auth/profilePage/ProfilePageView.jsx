@@ -216,21 +216,21 @@ const ProfilePageView = (props) => {
 
   const renderHeader = () => {
     return (
-      <div className="flex items-center justify-between px-4 py-3 border-b border-base-200 bg-base-200 fixed w-full z-10">
+      <div className="flex justify-between gap-x-6 items-center mb-8">
         <button
           onClick={() => navigate(-1)}
           className="btn btn-ghost btn-circle btn-sm text-base-content/60"
         >
-          <ArrowLeft className="size-5 text-base-content" />
+          <ArrowLeft className="size-8 text-base-content" />
         </button>
-        <h1 className="text-base-content font-bold text-lg">Profile</h1>
+        <h1 className="text-2xl font-bold text-base-content">Profile</h1>
         {isEditing ? (
           <div className="flex gap-2">
             <button
               onClick={handleCancel}
               className="btn btn-ghost btn-circle btn-sm text-base-content/60"
             >
-              <X className="size-5" />
+              <X className="size-8" />
             </button>
             <button
               onClick={handleSave}
@@ -238,15 +238,15 @@ const ProfilePageView = (props) => {
               className="btn btn-ghost btn-circle btn-sm text-primary"
             >
               {isUpdatingProfile
-                ? <span className="loading loading-spinner loading-xs" />
-                : <Check className="size-5" />
+                ? <span className="loading loading-spinner loading-sm" />
+                : <Check className="size-8" />
               }
             </button>
           </div>
         ) : (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-primary text-sm font-medium"
+            className="text-primary text-md font-medium"
           >
             Edit
           </button>
@@ -256,30 +256,32 @@ const ProfilePageView = (props) => {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 mt-16">
+    <div className="py-4">
+      <div className="h-full bg-base-200/30 border border-base-content/30 p-6 max-w-2xl mx-auto mt-16 rounded-2xl">
 
-      {renderHeader()}
+        {renderHeader()}
 
-      <div className="max-w-lg mx-auto px-4 pb-8 pt-20">
+        <div className=" px-4 pb-8 pt-20">
 
-        {renderAvatar()}
+          {renderAvatar()}
 
-        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
 
-          {renderFullNameField()}
+            {renderFullNameField()}
 
-          {renderUsernameField()}
+            {renderUsernameField()}
 
-          {renderBioField()}
+            {renderBioField()}
 
-          {renderEmailField()}
+            {renderEmailField()}
 
-          {renderMemberSinceField()}
+            {renderMemberSinceField()}
 
-          {renderAccountStatusField()}
+            {renderAccountStatusField()}
 
+          </div>
+          {renderDeleteAccountField()}
         </div>
-        {renderDeleteAccountField()}
       </div>
     </div>
   );
