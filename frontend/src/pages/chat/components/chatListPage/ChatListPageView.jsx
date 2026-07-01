@@ -42,7 +42,8 @@ const ChatListPageView = (props) => {
       : null;
 
     let messageText;
-    if (!latest || latest.isSystemMessage) messageText = "No messages yet";
+    if (!latest) messageText = "No messages yet";
+    else if (latest.isSystemMessage) messageText = latest.text || "No messages yet";
     else if (latest.text) messageText = latest.text;
     else if (latest.image) messageText = "📷 Image";
     else messageText = "No messages yet";
@@ -238,12 +239,12 @@ const ChatListPageView = (props) => {
       >
         {isUsersLoading ? <ChatListPageSkeleton /> : renderConversations()}
       </div>
-        <button
-          onClick={() => setIsNewChatModalOpen(true)}
-          className="absolute bottom-8 right-6 size-12 flex items-center justify-center bg-primary hover:bg-primary-hover text-base-content rounded-full transition-all hover:scale-110 shadow-2xl shadow-primary/40 z-20 group"
-        >
-          <PlusIcon className="size-8 font-extrabold text-base-300" />
-        </button>
+      <button
+        onClick={() => setIsNewChatModalOpen(true)}
+        className="absolute bottom-8 right-6 size-12 flex items-center justify-center bg-primary hover:bg-primary-hover text-base-content rounded-full transition-all hover:scale-110 shadow-2xl shadow-primary/40 z-20 group"
+      >
+        <PlusIcon className="size-8 font-extrabold text-base-300" />
+      </button>
     </>
   )
 }

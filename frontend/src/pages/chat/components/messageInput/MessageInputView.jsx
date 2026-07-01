@@ -18,7 +18,7 @@ const MessageInputView = (props) => {
   const isSendDisabled = (!text.trim() && !imagePreview) || isMessageSending;
 
   return (
-    <footer className="p-4 w-full aboslute bottom-0">
+    <footer className="p-4 w-full absolute bottom-0">
 
       {imagePreview && !replyingTo && (
         <div className="mb-3 flex items-center gap-2">
