@@ -19,20 +19,27 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
 
   const { authUser } = useAuthStore();
 
-  return (
-    <div className="py-4">
+  const renderHeader = () => {
+    return (
+      <div className="flex gap-x-6 items-center mb-8">
+        <Link to={"/"} aria-label="Back to chats" className="hover:bg-base-300 rounded-full">
+          <ArrowLeft className="size-8 text-base-content" />
+        </Link>
+        <div className="text-2xl font-bold text-base-content ">Settings</div>
+      </div>
+    )
+  }
 
-      <div className="h-full bg-base-300/60 p-6 max-w-2xl mx-auto mt-16 rounded-2xl">
-        <div className="flex gap-x-6 items-center mb-8">
-          <Link to={"/"} aria-label="Back to chats" className="hover:bg-base-300 p-3 rounded-full">
-            <ArrowLeft className="size-6" />
-          </Link>
-          <div className="text-2xl font-bold text-base-content ">Settings</div>
-        </div>
+  return (
+    <div className="lg:py-4 overflow-auto">
+      <div
+        className="bg-base-300/50 lg:border-2 lg:border-base-content/30 p-6 max-w-2xl mx-auto lg:rounded-3xl">
+
+        {renderHeader()}
 
         {/* theme section */}
         <section className="mt-8">
-          <h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-bold text-base-content/80 uppercase tracking-wider mb-4">
             Appearance
           </h2>
           <div className="grid grid-cols-4 gap-2">
@@ -66,7 +73,7 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
 
         {/* sound section */}
         <section className="mt-8">
-          <h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-bold text-base-content/80 uppercase tracking-wider mb-4">
             Sound
           </h2>
           <div className="flex flex-col gap-4 bg-base-300 rounded-xl p-4">
@@ -76,13 +83,13 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
               <div className="flex items-center gap-3">
                 {soundEnabled
                   ? <Volume2 className="size-5 text-primary" />
-                  : <VolumeX className="size-5 text-base-content/60" />
+                  : <VolumeX className="size-5 text-base-content/80" />
                 }
                 <div>
                   <p className="text-sm font-medium text-base-content">
                     Message Sounds
                   </p>
-                  <p className="text-xs text-base-content/60">
+                  <p className="text-xs text-base-content/80">
                     Play sounds for new messages
                   </p>
                 </div>
@@ -98,7 +105,7 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
             {/* volume slider */}
             {soundEnabled && (
               <div className="flex items-center gap-3">
-                <VolumeX className="size-4 text-base-content/60" />
+                <VolumeX className="size-4 text-base-content/80" />
                 <input
                   type="range"
                   min="0"
@@ -108,7 +115,7 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
                   onChange={(e) => setMessageVolume(Number(e.target.value))}
                   className="range range-primary range-sm flex-1"
                 />
-                <Volume2 className="size-4 text-base-content/60" />
+                <Volume2 className="size-4 text-base-content/80" />
               </div>
             )}
           </div>
@@ -116,7 +123,7 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
 
         {/* notifications section */}
         <section className="mt-8">
-          <h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-bold text-base-content/80 uppercase tracking-wider mb-4">
             Notifications
           </h2>
           <div className="bg-base-300 rounded-xl p-4">
@@ -124,13 +131,13 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
               <div className="flex items-center gap-3">
                 {notificationsEnabled
                   ? <Bell className="size-5 text-primary" />
-                  : <BellOff className="size-5 text-base-content/60" />
+                  : <BellOff className="size-5 text-base-content/80" />
                 }
                 <div>
                   <p className="text-sm font-medium text-base-content">
                     Push Notifications
                   </p>
-                  <p className="text-xs text-base-content/60">
+                  <p className="text-xs text-base-content/80">
                     Show notifications when app is in background
                   </p>
                 </div>
@@ -147,19 +154,19 @@ const SettingsPageView = ({ handleNotificationToggle }) => {
 
         {/* profile preview */}
         {authUser &&
-          <section className="p-8">
-            <h2 className="text-sm font-bold text-base-content/60 uppercase tracking-wider mb-4">
+          <section className="py-8">
+            <h2 className="text-sm font-bold text-base-content/80 uppercase tracking-wider mb-4">
               Profile Preview
             </h2>
-            <div className="bg-base-200 rounded-xl p-4 flex items-center gap-4">
+            <div className="bg-base-300 rounded-xl p-4 flex items-center gap-4">
               <img
                 src={authUser?.profilePicture || Avatar}
                 className="size-14 rounded-full object-cover border-2 border-primary"
               />
               <div>
                 <p className="text-base-content font-semibold">{authUser?.fullName}</p>
-                <p className="text-base-content/60 text-sm">@{authUser?.userName}</p>
-                <p className="text-base-content/40 text-xs">{authUser?.email}</p>
+                <p className="text-base-content/70 text-sm">@{authUser?.userName}</p>
+                <p className="text-base-content/50 text-xs">{authUser?.email}</p>
               </div>
             </div>
           </section>

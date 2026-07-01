@@ -18,9 +18,9 @@ const MessageInputView = (props) => {
   const isSendDisabled = (!text.trim() && !imagePreview) || isMessageSending;
 
   return (
-    <footer className="p-4 w-full relative bottom-0">
+    <footer className="p-4 w-full aboslute bottom-0">
 
-      {imagePreview && (
+      {imagePreview && !replyingTo && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
             <img
@@ -39,7 +39,42 @@ const MessageInputView = (props) => {
         </div>
       )}
 
-      {replyingTo && (
+      {replyingTo && imagePreview ? (
+        <div className="flex flex-col justify-between mb-2 px-3 py-2 bg-base-300 rounded-lg border-l-4 border-primary">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="relative">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-20 h-20 object-cover rounded-lg border border-base-300/80"
+              />
+              <button
+                onClick={removeImage}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300 text-base-content flex items-center justify-center"
+                type="button"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs text-primary font-semibold">
+                Replying to {replyingTo.senderId?.fullName || "Unknown"}
+              </span>
+              <span className="text-xs text-base-content/60 truncate">
+                {replyingTo.text || "📷 Image"}
+              </span>
+            </div>
+            <button
+              onClick={clearReplyingTo}
+              className="ml-2 text-base-content/60 hover:text-base-content transition-colors"
+            >
+              <X className="size-6" />
+            </button>
+          </div>
+        </div>
+      ) : replyingTo && (
         <div className="flex items-center justify-between mb-2 px-3 py-2 bg-base-300 rounded-lg border-l-4 border-primary">
           <div className="flex flex-col min-w-0">
             <span className="text-xs text-primary font-semibold">
@@ -53,7 +88,7 @@ const MessageInputView = (props) => {
             onClick={clearReplyingTo}
             className="ml-2 text-base-content/60 hover:text-base-content transition-colors"
           >
-            <X className="size-4" />
+            <X className="size-6" />
           </button>
         </div>
       )}
@@ -63,7 +98,7 @@ const MessageInputView = (props) => {
           <div className="flex flex-1 relative">
             <input
               type="text"
-              className=" w-full input input-bordered rounded-lg input-sm sm:input-md bg-base-200 text-base-content placeholder:text-base-content"
+              className=" w-full input input-bordered rounded-lg input-md bg-base-200 text-lg text-base-content placeholder:text-base-content placeholder:text-base-content/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors pr-12"
               placeholder="Type a message..."
               value={text}
               onChange={handleTyping}
@@ -82,7 +117,7 @@ const MessageInputView = (props) => {
                 className={` ${imagePreview ? "text-base-content/80" : "text-base-content hover:text-base-content/80"} `}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Image className="size-5 sm:size-8" />
+                <Image className="size-8" />
               </button>
             </div>
           </div>
@@ -96,7 +131,7 @@ const MessageInputView = (props) => {
             disabled={isSendDisabled}
           > {
               isMessageSending ? <span className="flex justify-center items-center loading loading-spinner size-5 lg:size-7 rounded-full text-base-content" /> :
-                <Send className="size-5 sm:size-7 text-base-content flex justify-center items-center" />
+                <Send className="size-7 text-base-content flex justify-center items-center" />
             }
 
           </button>

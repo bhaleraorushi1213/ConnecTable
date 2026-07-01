@@ -1,81 +1,89 @@
-  import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
-  import { useChatStore } from "../../../../store/useChatStore.js";
+import { useChatStore } from "../../../../store/useChatStore.js";
 
-  import ChatContainerView from "./ChatContainerView.jsx";
+import ChatContainerView from "./ChatContainerView.jsx";
 
-  const ChatContainer = () => {
-    const {
-      messages,
-      selectedChat,
-      getMessages,
-      subscribeToMessages,
-      unsubscribeFromMessages,
-      subscribeToTyping,
-      unsubscribeFromTyping,
-      isTyping,
-      hasMoreMessages,
-      isLoadingMoreMessages,
-      loadMoreMessages,
-    } = useChatStore();
+const ChatContainer = () => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState("");
 
-    const messageEndRef = useRef(null);
-    // const messageTopRef = useRef(null);
-    const scrollContainerRef = useRef(null);
+  const {
+    messages,
+    selectedChat,
+    getMessages,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+    subscribeToTyping,
+    unsubscribeFromTyping,
+    isTyping,
+    hasMoreMessages,
+    isLoadingMoreMessages,
+    loadMoreMessages,
+  } = useChatStore();
 
-    useEffect(() => {
-      if (!selectedChat) return;
 
-      getMessages(selectedChat._id);
+  const messageEndRef = useRef(null);
+  // const messageTopRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
-      subscribeToMessages(selectedChat);
-      subscribeToTyping();
+  useEffect(() => {
+    if (!selectedChat) return;
 
-      return () => {
-        unsubscribeFromMessages();
-        unsubscribeFromTyping();
-      };
-    }, [selectedChat, getMessages, subscribeToMessages, unsubscribeFromMessages, subscribeToTyping, unsubscribeFromTyping]);
+    getMessages(selectedChat._id);
 
-    useEffect(() => {
-      if (messageEndRef.current && (messages.length > 0 || isTyping)) {
-        messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }, [messages, isTyping])
+    subscribeToMessages(selectedChat);
+    subscribeToTyping();
 
-    const handleScroll = useCallback(() => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
+    return () => {
+      unsubscribeFromMessages();
+      unsubscribeFromTyping();
+    };
+  }, [selectedChat, getMessages, subscribeToMessages, unsubscribeFromMessages, subscribeToTyping, unsubscribeFromTyping]);
 
-      // load more when scrolled near the top
-      if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMoreMessages) {
-        // save current scroll height before loading
-        const prevScrollHeight = container.scrollHeight;
+  useEffect(() => {
+    if (messageEndRef.current && (messages.length > 0 || isTyping)) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isTyping])
 
-        loadMoreMessages().then(() => {
-          // restore scroll position after new messages prepended
-          requestAnimationFrame(() => {
-            const newScrollHeight = container.scrollHeight;
-            container.scrollTop = newScrollHeight - prevScrollHeight;
-          });
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // load more when scrolled near the top
+    if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMoreMessages) {
+      // save current scroll height before loading
+      const prevScrollHeight = container.scrollHeight;
+
+      loadMoreMessages().then(() => {
+        // restore scroll position after new messages prepended
+        requestAnimationFrame(() => {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop = newScrollHeight - prevScrollHeight;
         });
-      }
-    }, [hasMoreMessages, isLoadingMoreMessages, loadMoreMessages, scrollContainerRef]);
+      });
+    }
+  }, [hasMoreMessages, isLoadingMoreMessages, loadMoreMessages, scrollContainerRef]);
 
-    useEffect(() => {
-      const container = scrollContainerRef.current;
-      if (container) {
-        container.addEventListener("scroll", handleScroll);
-        return () => container.removeEventListener("scroll", handleScroll);
-      }
-    }, [handleScroll]);
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll]);
 
-    return (
-      <ChatContainerView
-        messageEndRef={messageEndRef}
-        scrollContainerRef={scrollContainerRef}
-      />
-    )
-  }
+  return (
+    <ChatContainerView
+      messageEndRef={messageEndRef}
+      scrollContainerRef={scrollContainerRef}
+      isDeleteModalOpen={isDeleteModalOpen}
+      setIsDeleteModalOpen={setIsDeleteModalOpen}
+      messageToDelete={messageToDelete}
+      setMessageToDelete={setMessageToDelete}
+    />
+  )
+}
 
-  export default ChatContainer;
+export default ChatContainer;

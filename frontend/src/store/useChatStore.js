@@ -150,7 +150,8 @@ export const useChatStore = create((set, get) => ({
 
     if (conversationSearch?.trim()) {
       const query = conversationSearch.trim().toLowerCase();
-      filtered = filtered.filter((chat) => {        if (chat.isGroupChat) {
+      filtered = filtered.filter((chat) => {
+        if (chat.isGroupChat) {
           return chat.chatName?.toLowerCase().includes(query);
         }
         // for DMs search by the other user's name
@@ -516,7 +517,9 @@ export const useChatStore = create((set, get) => ({
 
       if (!chatToUpdate) return;
 
-      const updatedChat = { ...chatToUpdate, latestMessage: newMessage };
+      const updatedChat = newMessage.isSystemMessage
+        ? chatToUpdate
+        : { ...chatToUpdate, latestMessage: newMessage };
 
       const updatedUsers = [
         updatedChat,
@@ -525,23 +528,27 @@ export const useChatStore = create((set, get) => ({
 
       // only increment badge if not currently viewing that chat
       if (newMessageChatId !== selectedChat?._id?.toString()) {
-        if (soundEnabled) playSound("notification", messageVolume);
+        if (!newMessage.isSystemMessage) {
+          if (soundEnabled) playSound("notification", messageVolume);
 
-        if (notificationsEnabled) {
-          const senderName = newMessage.senderId?.fullName || "Someone";
-          showBrowserNotification(senderName, {
-            body: newMessage.text || "📷 Sent an image",
-            tag: newMessageChatId,
+          if (notificationsEnabled) {
+            const senderName = newMessage.senderId?.fullName || "Someone";
+            showBrowserNotification(senderName, {
+              body: newMessage.text || "📷 Sent an image",
+              tag: newMessageChatId,
+            });
+          }
+          set({
+            users: updatedUsers,
+            unreadCounts: {
+              ...unreadCounts,
+              [newMessageChatId]: (unreadCounts[newMessageChatId] || 0) + 1,
+            },
           });
+        } else {
+          // system message — update list order but no badge
+          set({ users: updatedUsers });
         }
-
-        set({
-          users: updatedUsers,
-          unreadCounts: {
-            ...unreadCounts,
-            [newMessageChatId]: (unreadCounts[newMessageChatId] || 0) + 1,
-          },
-        });
       } else {
         // just update the list without badge
         set({ users: updatedUsers });

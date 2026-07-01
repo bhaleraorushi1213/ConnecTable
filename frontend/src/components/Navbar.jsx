@@ -11,7 +11,7 @@ const Navbar = () => {
   const { mobileView } = useChatStore();
 
   return (
-    <header className={`bg-base-200 border-b border-base-300 fixed w-full top-0 z-40 backdrop-blur-lg bg-base-100/80 mb-26 ${mobileView == 'chat' && 'hidden lg:block'}`}>
+    <header className={`bg-base-200 border-b border-base-300 sticky w-full top-0 z-40 backdrop-blur-lg bg-base-100/80 mb-26 ${mobileView == 'chat' && 'hidden lg:block'}`}>
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-8">

@@ -33,22 +33,26 @@ const ChatListPageView = (props) => {
   }
 
   const getLatestMessage = (user) => {
-    const isOwnMessage = user?.latestMessage?.senderId?._id === authUser._id;
-
-    const status = isOwnMessage ? getMessageStatus(user?.latestMessage, authUser._id, user?.users) : null;
-
-    let message = "";
     const latest = user?.latestMessage;
-    if (!latest) message = "No messages yet";
-    if (latest?.text) message = latest.text;
-    if (latest?.image) message = "📷 Image";
+
+    const isOwnMessage = latest?.senderId?._id === authUser._id ||
+      latest?.senderId === authUser._id;
+    const status = isOwnMessage
+      ? getMessageStatus(latest, authUser._id, user?.users)
+      : null;
+
+    let messageText;
+    if (!latest || latest.isSystemMessage) messageText = "No messages yet";
+    else if (latest.text) messageText = latest.text;
+    else if (latest.image) messageText = "📷 Image";
+    else messageText = "No messages yet";
 
     return (
       <div className="flex items-center gap-2">
         {isOwnMessage && <MessageStatus status={status} />}
         <div className="flex items-center gap-2">
           <p className="text-sm md:text-base text-base-content/60 truncate">
-            {message}
+            {messageText}
           </p>
         </div>
       </div>
@@ -65,7 +69,7 @@ const ChatListPageView = (props) => {
 
   const renderSearchBar = () => {
     return (
-      <div className="px-4 my-4">
+      <div className="px-4 pt-4 pb-2">
         <div className="flex w-full items-center rounded-lg bg-base-300 px-3 py-2">
           <SearchIcon className="size-5 text-base-content mr-2" />
           <input
@@ -226,7 +230,7 @@ const ChatListPageView = (props) => {
       {renderTabs()}
 
       <div
-        className="flex flex-1 flex-col overflow-auto h-[calc(100svh-200px)] custom-scrollbar py-2"
+        className="flex flex-1 flex-col overflow-auto h-[calc(100vh-180px)] lg:h-100 custom-scrollbar pt-2 lg:py-2"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "transparent transparent",
@@ -234,13 +238,12 @@ const ChatListPageView = (props) => {
       >
         {isUsersLoading ? <ChatListPageSkeleton /> : renderConversations()}
       </div>
-
-      <button
-        onClick={() => setIsNewChatModalOpen(true)}
-        className="absolute bottom-6 right-6 size-12 flex items-center justify-center bg-primary hover:bg-primary-hover text-base-content rounded-full transition-all hover:scale-110 shadow-2xl shadow-primary/40 z-20 group"
-      >
-        <PlusIcon className="size-8 font-extrabold text-base-300" />
-      </button>
+        <button
+          onClick={() => setIsNewChatModalOpen(true)}
+          className="absolute bottom-8 right-6 size-12 flex items-center justify-center bg-primary hover:bg-primary-hover text-base-content rounded-full transition-all hover:scale-110 shadow-2xl shadow-primary/40 z-20 group"
+        >
+          <PlusIcon className="size-8 font-extrabold text-base-300" />
+        </button>
     </>
   )
 }

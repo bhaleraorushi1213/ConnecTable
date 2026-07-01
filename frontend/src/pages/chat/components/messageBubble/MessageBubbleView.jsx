@@ -2,10 +2,10 @@ import { useEffect, useRef } from "react";
 import { useChatStore } from "../../../../store/useChatStore.js"
 import { useAuthStore } from "../../../../store/useAuthStore.js";
 
-import { Forward, Reply, Smile, Trash2 } from "lucide-react";
+import { Forward, MoreVerticalIcon, Reply, Smile, Trash2 } from "lucide-react";
 import { formatMessageTime, getMessageStatus } from "../../../../lib/utils.js";
 
-import {ReactionPicker} from "../reactionPicker/ReactionPicker.jsx";
+import { ReactionPicker } from "../reactionPicker/ReactionPicker.jsx";
 import ForwardMessageModal from "../../modals/forwardMessageModal/ForwardMessageModal.jsx";
 import MessageStatus from "../messageStatus/MessageStatus.jsx";
 
@@ -19,10 +19,11 @@ const MessageBubbleView = (props) => {
     isMenuOpen,
     setIsMenuOpen,
     showForward,
-    setShowForward
+    setShowForward,
+    handleDeleteMessage
   } = props;
 
-  const { reactToMessage, selectedChat, deleteMessage, setReplyingTo, setForwardingMessage } = useChatStore();
+  const { reactToMessage, selectedChat, setReplyingTo, setForwardingMessage } = useChatStore();
   const { authUser } = useAuthStore();
 
   const menuRef = useRef(null);
@@ -43,7 +44,7 @@ const MessageBubbleView = (props) => {
 
     document.addEventListener("click", handleDocumentClick);
     return () => document.removeEventListener("click", handleDocumentClick);
-  }, [isMenuOpen, setIsMenuOpen]);  
+  }, [isMenuOpen, setIsMenuOpen]);
 
   const status = isOwnMessage
     ? getMessageStatus(message, authUser._id, selectedChat?.users)
@@ -130,7 +131,9 @@ const MessageBubbleView = (props) => {
             />
           )}
           {message.text &&
-            <p className={`px-2 break-all whitespace-pre-wrap ${isOwnMessage ? "text-base-300" : "text-base-content"}`}>{message.text}</p>
+            <p className={`px-2 break-all whitespace-pre-wrap ${isOwnMessage ? "text-base-300" : "text-base-content"}`}>
+              {message.text}
+            </p>
           }
         </div>
 
@@ -144,14 +147,6 @@ const MessageBubbleView = (props) => {
       <div className={`absolute -top-3 ${isOwnMessage ? "right-full mr-1" : "left-full ml-1"} 
           opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1`}
       >
-        {/* reply button */}
-        <button
-          onClick={() => setReplyingTo(message)}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="Reply"
-        >
-          <Reply className="size-3.5" />
-        </button>
-
         {/* reaction button */}
         <button
           onClick={() => setShowPicker((p) => !p)}
@@ -160,25 +155,11 @@ const MessageBubbleView = (props) => {
           <Smile className="size-3.5" />
         </button>
 
-        <button
-          onClick={() => {
-            setForwardingMessage(message);
-            setShowForward(true);
-          }}
-          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="Forward"
+        <button onClick={() => setIsMenuOpen((p) => !p)} ref={triggerRef}
+          className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="More options"
         >
-          <Forward className="size-3.5" />
+          <MoreVerticalIcon />
         </button>
-
-        {/* delete button - own messages only */}
-        {isOwnMessage && (
-          <button
-            onClick={() => deleteMessage(message._id)}
-            className="size-7 bg-base-300 rounded-full flex items-center justify-center text-red-800 hover:text-red-600 border border-base-content/60 transition-colors tooltip" data-tip="Delete"
-          >
-            <Trash2 className="size-3.5" />
-          </button>
-        )}
       </div>
     )
   };
@@ -215,6 +196,45 @@ const MessageBubbleView = (props) => {
     )
   }
 
+  const renderMenu = () => {
+    return (
+      <div ref={menuRef} className={`absolute z-20 ${isOwnMessage ? "right-full mr-8" : "left-full ml-1"} top-0 bg-base-300 rounded-lg shadow-lg border border-base-content/30 w-36 py-1`}>
+        <button
+          onClick={() => {
+            setReplyingTo(message);
+            setIsMenuOpen(false);
+          }}
+          className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-base-content/10 transition-colors"
+        >
+          <Reply className="size-4" />
+          <span className="text-sm text-base-content">Reply</span>
+        </button>
+        <button
+          onClick={() => {
+            setForwardingMessage(message);
+            setShowForward(true);
+            setIsMenuOpen(false);
+          }}
+          className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-base-content/10 transition-colors"
+        >
+          <Forward className="size-4" />
+          <span className="text-sm text-base-content">Forward</span>
+        </button>
+        {isOwnMessage && (
+          <button
+            onClick={() => {
+              handleDeleteMessage(message._id);
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-base-content/10 transition-colors"
+          >
+            <Trash2 className="size-4 text-red-600" />
+            <span className="text-sm text-red-600">Delete</span>
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       id={`message-${message._id}`}
@@ -229,6 +249,9 @@ const MessageBubbleView = (props) => {
         {renderChatBubble()}
 
         {renderActionButtons()}
+
+        {/* MENU */}
+        {isMenuOpen && renderMenu()}
 
         {/* reaction picker */}
         {showPicker && (

@@ -52,11 +52,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
-      set({
-        isSigningUp: false,
-        authUser: null,
-        users: [],
-      });
+      set({isSigningUp: false,});
       setSelectedChat(null)
     }
   },
@@ -80,6 +76,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
+    const { setSelectedChat } = useChatStore.getState();
     try {
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
@@ -89,6 +86,8 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       console.log("Error in logout", error);
       toast.error("Failed to log out. Please try again.");
+    } finally {
+      setSelectedChat(null)
     }
   },
 

@@ -5,7 +5,7 @@ const NoChatSelectedPageView = () => {
   const { setIsNewChatModalOpen } = useChatStore();
   
   return (
-    <main
+    <div
       className={`flex-col relative overflow-hidden h-full flex-1
       flex`}
     >
@@ -31,7 +31,7 @@ const NoChatSelectedPageView = () => {
           Start New Conversation
         </button>
       </div>
-    </main>
+    </div>
   )
 }
 

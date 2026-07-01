@@ -64,6 +64,7 @@ export const getAllMessages = async (req, res) => {
 				chat: chatId,
 				readBy: { $ne: userId },
 				senderId: { $ne: userId },
+				isSystemMessage: { $ne: true },
 			},
 			{ $addToSet: { readBy: userId } }
 		);
@@ -330,6 +331,7 @@ export const getUnreadCount = async (req, res) => {
 					chat: { $in: chatIds },
 					readBy: { $ne: new mongoose.Types.ObjectId(userId) },
 					senderId: { $ne: new mongoose.Types.ObjectId(userId) },
+					isSystemMessage: { $ne: true },
 				},
 			},
 			{
