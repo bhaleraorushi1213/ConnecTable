@@ -8,19 +8,15 @@ const HomePage = () => {
   const { mobileView, selectedChat, isNewChatModalOpen } = useChatStore();
 
   return (
-    <div className={`flex h-screen w-full relative overflow-hidden bg-base-500  ${mobileView === 'chat' ? 'pt-0 lg:pt-16' : "pt-16"}`}>
+    <div className={`flex w-full relative overflow-hidden bg-base-500 lg:h-[calc(100vh-4rem)]`}>
       <aside
-        className={`flex-shrink-0 h-full relative z-10 border-r border-zinc-500 transition-all duration-300 w-full lg:w-[400px] 
-        ${mobileView === "list" ? "block" : "hidden lg:block"}`}
+        className={`flex-shrink-0 h-full relative z-10 border-r border-zinc-500 transition-all duration-300 w-full lg:w-[400px] ${mobileView === "list" ? "block" : "hidden lg:block"}`}
       >
         <ChatListPage />
       </aside>
 
       <main
-        className={`
-          flex-1 flex flex-col min-w-0 h-full
-          ${mobileView === "chat" ? "block" : "hidden lg:flex"}
-        `}
+        className={`flex-1 flex flex-col min-w-0 h-screen lg:h-full ${mobileView === "chat" ? "block" : "hidden lg:flex"}`}
       >
         {selectedChat ? (
           <ChatContainer />

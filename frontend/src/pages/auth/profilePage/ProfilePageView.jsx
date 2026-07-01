@@ -49,7 +49,7 @@ const ProfilePageView = (props) => {
 
   const renderAccountStatusField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4 flex items-center justify-between">
+      <div className="bg-base-300 rounded-xl p-4 flex items-center justify-between">
         <div>
           <p className="text-xs text-base-content/60 uppercase tracking-wider mb-1">
             Account Status
@@ -63,7 +63,7 @@ const ProfilePageView = (props) => {
 
   const renderMemberSinceField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4">
+      <div className="bg-base-300 rounded-xl p-4">
         <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Member Since
         </p>
@@ -80,7 +80,7 @@ const ProfilePageView = (props) => {
 
   const renderEmailField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4">
+      <div className="bg-base-300 rounded-xl p-4">
         <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Email
         </p>
@@ -91,7 +91,7 @@ const ProfilePageView = (props) => {
 
   const renderBioField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4">
+      <div className="bg-base-300 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs text-base-content/60 uppercase tracking-wider">
             Bio
@@ -127,7 +127,7 @@ const ProfilePageView = (props) => {
 
   const renderUsernameField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4">
+      <div className="bg-base-300 rounded-xl p-4">
         <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Username
         </p>
@@ -153,7 +153,7 @@ const ProfilePageView = (props) => {
 
   const renderFullNameField = () => {
     return (
-      <div className="bg-base-200 rounded-xl p-4">
+      <div className="bg-base-300 rounded-xl p-4">
         <p className="text-xs text-base-content/60 uppercase tracking-wider mb-2">
           Full Name
         </p>
@@ -217,13 +217,16 @@ const ProfilePageView = (props) => {
   const renderHeader = () => {
     return (
       <div className="flex justify-between gap-x-6 items-center mb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="btn btn-ghost btn-circle btn-sm text-base-content/60"
-        >
-          <ArrowLeft className="size-8 text-base-content" />
-        </button>
-        <h1 className="text-2xl font-bold text-base-content">Profile</h1>
+        <div className="flex items-center gap-x-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="btn btn-ghost btn-circle btn-sm text-base-content/60 "
+          >
+            <ArrowLeft className="size-8 text-base-content" />
+          </button>
+          <h1 className="text-2xl font-bold text-base-content">Profile</h1>
+        </div>
+
         {isEditing ? (
           <div className="flex gap-2">
             <button
@@ -256,12 +259,12 @@ const ProfilePageView = (props) => {
   };
 
   return (
-    <div className="py-4">
-      <div className="h-full bg-base-200/30 border border-base-content/30 p-6 max-w-2xl mx-auto mt-16 rounded-2xl">
+    <div className="lg:py-4 overflow-y-auto">
+      <div className="bg-base-300/50 lg:border-2 lg:border-base-content/30 p-6 max-w-2xl mx-auto lg:rounded-3xl">
 
         {renderHeader()}
 
-        <div className=" px-4 pb-8 pt-20">
+        <div className=" px-4 pb-8">
 
           {renderAvatar()}
 

@@ -9,9 +9,17 @@ import MessageSkeleton from "../../skeletons/MessageSkeleton.jsx"
 import MessageBubble from "../messageBubble/MessageBubble.jsx";
 import Avatar from "../../../../assets/default-avatar.png";
 import React from "react";
+import DeleteMessageModal from "../../modals/deleteMessageModal/DeleteMessageModal.jsx";
 
 const ChatContainerView = (props) => {
-  const { messageEndRef, scrollContainerRef } = props;
+  const {
+    messageEndRef,
+    scrollContainerRef,
+    isDeleteModalOpen,
+    setIsDeleteModalOpen,
+    messageToDelete,
+    setMessageToDelete
+  } = props;
 
   const { authUser } = useAuthStore();
   const {
@@ -34,7 +42,27 @@ const ChatContainerView = (props) => {
     )
   };
 
+  const renderSystemMessage = (message) => {
+    return (
+      <div className="flex items-center justify-center my-2">
+        <span className="text-xs text-base-content/50 bg-base-200 rounded-full px-3 py-1 text-center max-w-xs">
+          {message.text}
+        </span>
+      </div>
+    );
+  };
+
   const renderMessages = () => {
+    if (messages.length === 0) {
+      return (
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-base-content/50 text-sm">
+            No messages yet. Start the conversation!
+          </p>
+        </div>
+      )
+    }
+
     return (
       <div
         className="flex-1 flex flex-col overflow-auto px-4"
@@ -62,6 +90,7 @@ const ChatContainerView = (props) => {
             <div className="flex-1 h-px bg-base-content/50" />
           </div>
         )}
+
         {messages.map((message, idx) => {
 
           const prevMessage = messages[idx - 1];
@@ -77,6 +106,21 @@ const ChatContainerView = (props) => {
 
           const senderPic = !isOwnMessage && message?.senderId?.profilePicture || Avatar;
 
+          if (message.isSystemMessage) {
+            return (
+              <React.Fragment key={message._id}>
+                {showDateSeparator && (
+                  <div className="flex items-center justify-center gap-3 py-4">
+                    <span className="text-xs text-base-content bg-base-100 shrink-0 border border-base-content my-2 rounded-full px-2 py-1.5">
+                      {formatDateSeparator(message.createdAt)}
+                    </span>
+                  </div>
+                )}
+                {renderSystemMessage(message)}
+              </React.Fragment>
+            );
+          }
+
           return (
             <React.Fragment key={message._id}>
               {showDateSeparator && (
@@ -87,8 +131,13 @@ const ChatContainerView = (props) => {
                 </div>
               )}
 
-
-              <MessageBubble senderPic={senderPic} message={message} isOwnMessage={isOwnMessage} />
+              <MessageBubble
+                senderPic={senderPic}
+                message={message}
+                isOwnMessage={isOwnMessage}
+                setIsDeleteModalOpen={setIsDeleteModalOpen}
+                setMessageToDelete={setMessageToDelete}
+              />
             </React.Fragment>
           )
         })}
@@ -98,15 +147,13 @@ const ChatContainerView = (props) => {
   }
 
   return (
-    <main
-      className={`
-        flex-col relative bg-base-100 overflow-hidden h-full flex-1
-        ${mobileView === "chat" && selectedChat?._id ? "flex" : "hidden lg:flex"}
-      `}>
+    <div className={`flex-col relative bg-base-100 overflow-hidden h-full flex-1 ${mobileView === "chat" && selectedChat?._id ? "flex" : "hidden lg:flex"}`}>
 
       <ChatHeader />
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
 
-      {renderMessages()}
+        {renderMessages()}
+      </div>
 
       {isTyping && (
         <div className="flex items-center gap-2 px-4 py-2 text-sm text-base-content/80">
@@ -119,10 +166,16 @@ const ChatContainerView = (props) => {
         </div>
       )}
 
-
       <MessageInput />
-    </main>
+
+      {isDeleteModalOpen && (
+        <DeleteMessageModal
+          message={messageToDelete}
+          onClose={() => setIsDeleteModalOpen(false)}
+        />
+      )}
+    </div>
   )
 }
 
-export default ChatContainerView
+export default ChatContainerView;

@@ -19,7 +19,7 @@ const LoginPageView = (props) => {
 
   } = props;
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-base-100 relative overflow-hidden font-sans">
+    <div className="w-full flex items-center justify-center bg-base-100 px-4 pt-16 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
       {/* Background Effects */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(rgba(123,60,231,0.15)_1px,_transparent_1px)] bg-[length:24px_24px] opacity-40"/>

@@ -6,6 +6,13 @@ const MessageBubble = (props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showForward, setShowForward] = useState(false);
 
+  const handleDeleteMessage = (messageId) => {
+    const { setIsDeleteModalOpen, setMessageToDelete } = props;
+    setIsMenuOpen(false);
+    setMessageToDelete(messageId);
+    setIsDeleteModalOpen(true);
+  }
+
   return (
     <MessageBubbleView
       {...props}
@@ -16,7 +23,9 @@ const MessageBubble = (props) => {
         setIsMenuOpen,
         showForward,
         setShowForward
-      }} />
+      }}
+      handleDeleteMessage={handleDeleteMessage}
+    />
   )
 }
 

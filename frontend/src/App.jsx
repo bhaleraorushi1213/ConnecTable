@@ -33,7 +33,7 @@ const App = () => {
 
 	return (
 		<>
-			<div data-theme={theme} className="h-full">
+			<div data-theme={theme} className="h-screen flex flex-col overflow-hidden">
 				<Navbar />
 
 				<Routes>

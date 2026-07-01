@@ -25,7 +25,7 @@ const SignUpPageView = (props) => {
   } = props;
   
   return (
-    <div className="min-h-100 w-full flex items-center justify-center bg-base-100 py-16 my-8 relative overflow-hidden font-sans">
+    <div className="w-full flex items-center justify-center px-4 pt-8 sm:px-8 lg:px-8 bg-base-100 relative overflow-hidden font-sans">
       {/* Background Effects */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(rgba(123,60,231,0.15)_1px,_transparent_1px)] bg-[length:24px_24px] opacity-40"></div>
