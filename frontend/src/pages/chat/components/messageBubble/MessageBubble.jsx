@@ -8,6 +8,7 @@ const MessageBubble = (props) => {
 
   const handleDeleteMessage = (messageId) => {
     const { setIsDeleteModalOpen, setMessageToDelete } = props;
+    setIsMenuOpen(false);
     setMessageToDelete(messageId);
     setIsDeleteModalOpen(true);
   }

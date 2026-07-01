@@ -171,7 +171,7 @@ const ChatContainerView = (props) => {
       {isDeleteModalOpen && (
         <DeleteMessageModal
           message={messageToDelete}
-          onClose={() => setIsDeleteModalOpen(!isDeleteModalOpen)}
+          onClose={() => setIsDeleteModalOpen(false)}
         />
       )}
     </div>

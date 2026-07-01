@@ -158,7 +158,7 @@ const MessageBubbleView = (props) => {
         <button onClick={() => setIsMenuOpen((p) => !p)} ref={triggerRef}
           className="size-7 bg-base-300 rounded-full flex items-center justify-center text-base-content/70 hover:text-primary border border-base-content/60 transition-colors tooltip" data-tip="More options"
         >
-          <MoreVerticalIcon />
+          <MoreVerticalIcon className="size-3.5" />
         </button>
       </div>
     )

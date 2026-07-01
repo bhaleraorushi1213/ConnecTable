@@ -230,7 +230,7 @@ const ChatListPageView = (props) => {
       {renderTabs()}
 
       <div
-        className="flex flex-1 flex-col overflow-auto h-[calc(100vh-180px)] lg:h-100 custom-scrollbar pt-2 lg:py-2"
+        className="flex flex-1 flex-col overflow-auto h-[calc(100svh-180px)] lg:h-100 custom-scrollbar pt-2 lg:py-2"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "transparent transparent",
